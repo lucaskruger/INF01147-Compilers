@@ -1,3 +1,4 @@
+ETAPA = etapa1	
 IDIR =../include
 CC=gcc
 CFLAGS=-I$(IDIR)
@@ -13,17 +14,16 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 _OBJ = main.o lex.yy.o 
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
+make: $(OBJ) 
+	$(CC) -o $(ETAPA)  $^ $(CFLAGS) $(LIBS)
 
-$(ODIR)/%.o: %.c $(DEPS)
+$(ODIR)/%.o: %.c $(DEPS) lex.yy.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 lex.yy.c: scanner.l
 	flex scanner.l 
 
-make: $(OBJ) lex.yy.c
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
-
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ 
+	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ lex.yy.c	 

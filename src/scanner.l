@@ -4,11 +4,13 @@
 %}
 
 %option yylineno
+%option noyywrap
 %x BLOCK_COMMENT
 LETTER	[a-z]
 DIGIT	[0-9]
 
 %%
+ /* new comment */
  /*  reserved words */
 int 	{return TK_PR_INT;}
 float 	{return TK_PR_FLOAT;}
