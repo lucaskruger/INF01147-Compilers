@@ -1,4 +1,3 @@
-ETAPA = etapa1	
 IDIR =../include
 CC=gcc
 CFLAGS=-I$(IDIR)
@@ -8,22 +7,26 @@ LDIR =../lib
 
 LIBS=-lm
 
-_DEPS = tokens.h
+_DEPS = 
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = main.o lex.yy.o 
+_OBJ = lex.yy.o parser.tab.o main.o  
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-make: $(OBJ) 
-	$(CC) -o $(ETAPA)  $^ $(CFLAGS) $(LIBS)
+etapa2: $(OBJ) 
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
-$(ODIR)/%.o: %.c $(DEPS) lex.yy.c
+$(ODIR)/%.o: %.c $(DEPS) 
 	$(CC) -c -o $@ $< $(CFLAGS)
 
+parser.tab.c: parser.y
+	bison -d parser.y
+
 lex.yy.c: scanner.l
-	flex scanner.l 
+	flex scanner.l
+
 
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ lex.yy.c	 
+	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ parser.tab.c parser.tab.h lex.yy.c 

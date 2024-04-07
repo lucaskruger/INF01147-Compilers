@@ -1,10 +1,11 @@
 %{
 #include <stdio.h>
-#include "tokens.h"
+#include "parser.tab.h"
 %}
 
 %option yylineno
 %option noyywrap
+
 %x BLOCK_COMMENT
 LETTER	[a-z]
 DIGIT	[0-9]
