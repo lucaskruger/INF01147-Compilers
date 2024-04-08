@@ -20,7 +20,7 @@ $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 parser.tab.c: parser.y
-	bison -d parser.y
+	bison -d parser.y --report-file=parser.output	
 
 lex.yy.c: scanner.l
 	flex scanner.l
@@ -29,4 +29,4 @@ lex.yy.c: scanner.l
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ parser.tab.c parser.tab.h lex.yy.c 
+	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ parser.tab.c parser.tab.h lex.yy.c etapa2

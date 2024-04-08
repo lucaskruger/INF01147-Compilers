@@ -1,3 +1,4 @@
+%define parse.error detailed
 %{
 #include <stdio.h>
 int yylex(void);
@@ -28,6 +29,29 @@ fprintf (stderr, "%s\n", mensagem);
 
 %%
 
-programa:
+programa:         /* empty */
+                | global_var programa   
+                | function programa    
+                ;    
 
+global_var:      type id_list ','
+                ;
+
+function:
+
+
+id_list:         id
+                |id';'id_list  
+                ;
+
+
+id:               TK_IDENTIFICADOR 
+                ;
+type:             int   
+                | float 
+                | bool  
+                ;   
+int:    TK_PR_INT        {$$ = $0;}
+float:   TK_PR_FLOAT       {$$ = $0;}
+bool:    TK_PR_BOOL    {$$ = $0;}    
 %%
