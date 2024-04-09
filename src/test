@@ -1,1 +1,14 @@
 int a ,
+float b; c ,
+bool f ; d ,
+
+(int a ; bool b) | int / foo {
+float _myfloat , 
+_myfloat = .3 , 
+foo (2 ; 3),	 
+return 1 , 
+
+if ( 3 + 2){}else{},
+while(1){},}
+
+// closing the comm_block } by it's self in another line doesn't work

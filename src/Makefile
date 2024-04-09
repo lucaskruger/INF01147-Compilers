@@ -1,3 +1,5 @@
+RELEASE = etapa2
+
 IDIR =../include
 CC=gcc
 CFLAGS=-I$(IDIR)
@@ -13,20 +15,22 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 _OBJ = lex.yy.o parser.tab.o main.o  
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-etapa2: $(OBJ) 
+$(RELEASE): $(OBJ) 
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
-$(ODIR)/%.o: %.c $(DEPS) 
+$(ODIR)/%.o: %.c $(DEPS) | $(ODIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
+$(ODIR): 
+	mkdir $@ 
+
 parser.tab.c: parser.y
-	bison -d parser.y --report-file=parser.output	
+	bison -d parser.y --report-file=.parser.output --verbose 
 
 lex.yy.c: scanner.l
 	flex scanner.l
 
-
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ parser.tab.c parser.tab.h lex.yy.c etapa2
+	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ parser.tab.c parser.tab.h lex.yy.c $(RELEASE)
