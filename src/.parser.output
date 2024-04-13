@@ -1,0 +1,1635 @@
+Terminals unused in grammar
+
+    TK_ERRO
+
+
+Grammar
+
+    0 $accept: program $end
+
+    1 program: %empty
+    2        | global_var program
+    3        | func program
+
+    4 global_var: type id_list ','
+
+    5 func: header comm_block
+
+    6 header: '(' par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR
+    7       | '(' ')' TK_OC_OR type '/' TK_IDENTIFICADOR
+
+    8 par_list: par_list ';' type TK_IDENTIFICADOR
+    9         | type TK_IDENTIFICADOR
+
+   10 comm_block: '{' '}'
+   11           | '{' comm_lst '}'
+
+   12 comm_lst: comm ','
+   13         | comm_lst comm ','
+
+   14 comm: comm_block
+   15     | var_decl
+   16     | attrib_comm
+   17     | func_call
+   18     | ret_comm
+   19     | flux_ctrl
+
+   20 var_decl: type id_list
+
+   21 attrib_comm: TK_IDENTIFICADOR '=' exp
+
+   22 func_call: TK_IDENTIFICADOR '(' arg_list ')'
+   23          | TK_IDENTIFICADOR '(' ')'
+
+   24 arg_list: exp
+   25         | arg_list ';' exp
+
+   26 ret_comm: TK_PR_RETURN exp
+
+   27 flux_ctrl: TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block
+   28          | TK_PR_IF '(' exp ')' comm_block
+   29          | TK_PR_WHILE '(' exp ')' comm_block
+
+   30 exp: or_exp
+
+   31 or_exp: or_exp TK_OC_OR and_exp
+   32       | and_exp
+
+   33 and_exp: and_exp TK_OC_AND eq_exp
+   34        | eq_exp
+
+   35 eq_exp: eq_exp TK_OC_EQ comp_exp
+   36       | eq_exp TK_OC_NE comp_exp
+   37       | comp_exp
+
+   38 comp_exp: comp_exp '<' sum_exp
+   39         | comp_exp '>' sum_exp
+   40         | comp_exp TK_OC_LE sum_exp
+   41         | comp_exp TK_OC_GE sum_exp
+   42         | sum_exp
+
+   43 sum_exp: sum_exp '+' mult_exp
+   44        | sum_exp '-' mult_exp
+   45        | mult_exp
+
+   46 mult_exp: mult_exp '*' un_exp
+   47         | mult_exp '/' un_exp
+   48         | mult_exp '%' un_exp
+   49         | un_exp
+
+   50 un_exp: '-' operand
+   51       | '!' operand
+   52       | operand
+
+   53 operand: TK_IDENTIFICADOR
+   54        | lit
+   55        | func_call
+   56        | '(' exp ')'
+
+   57 id_list: TK_IDENTIFICADOR
+   58        | id_list ';' TK_IDENTIFICADOR
+
+   59 lit: TK_LIT_INT
+   60    | TK_LIT_FLOAT
+   61    | TK_LIT_FALSE
+   62    | TK_LIT_TRUE
+
+   63 type: TK_PR_INT
+   64     | TK_PR_FLOAT
+   65     | TK_PR_BOOL
+
+
+Terminals, with rules where they appear
+
+    $end (0) 0
+    '!' (33) 51
+    '%' (37) 48
+    '(' (40) 6 7 22 23 27 28 29 56
+    ')' (41) 6 7 22 23 27 28 29 56
+    '*' (42) 46
+    '+' (43) 43
+    ',' (44) 4 12 13
+    '-' (45) 44 50
+    '/' (47) 6 7 47
+    ';' (59) 8 25 58
+    '<' (60) 38
+    '=' (61) 21
+    '>' (62) 39
+    '{' (123) 10 11
+    '}' (125) 10 11
+    error (256)
+    TK_PR_INT (258) 63
+    TK_PR_FLOAT (259) 64
+    TK_PR_BOOL (260) 65
+    TK_PR_IF (261) 27 28
+    TK_PR_ELSE (262) 27
+    TK_PR_WHILE (263) 29
+    TK_PR_RETURN (264) 26
+    TK_OC_LE (265) 40
+    TK_OC_GE (266) 41
+    TK_OC_EQ (267) 35
+    TK_OC_NE (268) 36
+    TK_OC_AND (269) 33
+    TK_OC_OR (270) 6 7 31
+    TK_IDENTIFICADOR (271) 6 7 8 9 21 22 23 53 57 58
+    TK_LIT_INT (272) 59
+    TK_LIT_FLOAT (273) 60
+    TK_LIT_FALSE (274) 61
+    TK_LIT_TRUE (275) 62
+    TK_ERRO (276)
+
+
+Nonterminals, with rules where they appear
+
+    $accept (37)
+        on left: 0
+    program (38)
+        on left: 1 2 3
+        on right: 0 2 3
+    global_var (39)
+        on left: 4
+        on right: 2
+    func (40)
+        on left: 5
+        on right: 3
+    header (41)
+        on left: 6 7
+        on right: 5
+    par_list (42)
+        on left: 8 9
+        on right: 6 8
+    comm_block (43)
+        on left: 10 11
+        on right: 5 14 27 28 29
+    comm_lst (44)
+        on left: 12 13
+        on right: 11 13
+    comm (45)
+        on left: 14 15 16 17 18 19
+        on right: 12 13
+    var_decl (46)
+        on left: 20
+        on right: 15
+    attrib_comm (47)
+        on left: 21
+        on right: 16
+    func_call (48)
+        on left: 22 23
+        on right: 17 55
+    arg_list (49)
+        on left: 24 25
+        on right: 22 25
+    ret_comm (50)
+        on left: 26
+        on right: 18
+    flux_ctrl (51)
+        on left: 27 28 29
+        on right: 19
+    exp (52)
+        on left: 30
+        on right: 21 24 25 26 27 28 29 56
+    or_exp (53)
+        on left: 31 32
+        on right: 30 31
+    and_exp (54)
+        on left: 33 34
+        on right: 31 32 33
+    eq_exp (55)
+        on left: 35 36 37
+        on right: 33 34 35 36
+    comp_exp (56)
+        on left: 38 39 40 41 42
+        on right: 35 36 37 38 39 40 41
+    sum_exp (57)
+        on left: 43 44 45
+        on right: 38 39 40 41 42 43 44
+    mult_exp (58)
+        on left: 46 47 48 49
+        on right: 43 44 45 46 47 48
+    un_exp (59)
+        on left: 50 51 52
+        on right: 46 47 48 49
+    operand (60)
+        on left: 53 54 55 56
+        on right: 50 51 52
+    id_list (61)
+        on left: 57 58
+        on right: 4 20 58
+    lit (62)
+        on left: 59 60 61 62
+        on right: 54
+    type (63)
+        on left: 63 64 65
+        on right: 4 6 7 8 9 20
+
+
+State 0
+
+    0 $accept: . program $end
+
+    TK_PR_INT    shift, and go to state 1
+    TK_PR_FLOAT  shift, and go to state 2
+    TK_PR_BOOL   shift, and go to state 3
+    '('          shift, and go to state 4
+
+    $default  reduce using rule 1 (program)
+
+    program     go to state 5
+    global_var  go to state 6
+    func        go to state 7
+    header      go to state 8
+    type        go to state 9
+
+
+State 1
+
+   63 type: TK_PR_INT .
+
+    $default  reduce using rule 63 (type)
+
+
+State 2
+
+   64 type: TK_PR_FLOAT .
+
+    $default  reduce using rule 64 (type)
+
+
+State 3
+
+   65 type: TK_PR_BOOL .
+
+    $default  reduce using rule 65 (type)
+
+
+State 4
+
+    6 header: '(' . par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR
+    7       | '(' . ')' TK_OC_OR type '/' TK_IDENTIFICADOR
+
+    TK_PR_INT    shift, and go to state 1
+    TK_PR_FLOAT  shift, and go to state 2
+    TK_PR_BOOL   shift, and go to state 3
+    ')'          shift, and go to state 10
+
+    par_list  go to state 11
+    type      go to state 12
+
+
+State 5
+
+    0 $accept: program . $end
+
+    $end  shift, and go to state 13
+
+
+State 6
+
+    2 program: global_var . program
+
+    TK_PR_INT    shift, and go to state 1
+    TK_PR_FLOAT  shift, and go to state 2
+    TK_PR_BOOL   shift, and go to state 3
+    '('          shift, and go to state 4
+
+    $default  reduce using rule 1 (program)
+
+    program     go to state 14
+    global_var  go to state 6
+    func        go to state 7
+    header      go to state 8
+    type        go to state 9
+
+
+State 7
+
+    3 program: func . program
+
+    TK_PR_INT    shift, and go to state 1
+    TK_PR_FLOAT  shift, and go to state 2
+    TK_PR_BOOL   shift, and go to state 3
+    '('          shift, and go to state 4
+
+    $default  reduce using rule 1 (program)
+
+    program     go to state 15
+    global_var  go to state 6
+    func        go to state 7
+    header      go to state 8
+    type        go to state 9
+
+
+State 8
+
+    5 func: header . comm_block
+
+    '{'  shift, and go to state 16
+
+    comm_block  go to state 17
+
+
+State 9
+
+    4 global_var: type . id_list ','
+
+    TK_IDENTIFICADOR  shift, and go to state 18
+
+    id_list  go to state 19
+
+
+State 10
+
+    7 header: '(' ')' . TK_OC_OR type '/' TK_IDENTIFICADOR
+
+    TK_OC_OR  shift, and go to state 20
+
+
+State 11
+
+    6 header: '(' par_list . ')' TK_OC_OR type '/' TK_IDENTIFICADOR
+    8 par_list: par_list . ';' type TK_IDENTIFICADOR
+
+    ')'  shift, and go to state 21
+    ';'  shift, and go to state 22
+
+
+State 12
+
+    9 par_list: type . TK_IDENTIFICADOR
+
+    TK_IDENTIFICADOR  shift, and go to state 23
+
+
+State 13
+
+    0 $accept: program $end .
+
+    $default  accept
+
+
+State 14
+
+    2 program: global_var program .
+
+    $default  reduce using rule 2 (program)
+
+
+State 15
+
+    3 program: func program .
+
+    $default  reduce using rule 3 (program)
+
+
+State 16
+
+   10 comm_block: '{' . '}'
+   11           | '{' . comm_lst '}'
+
+    TK_PR_INT         shift, and go to state 1
+    TK_PR_FLOAT       shift, and go to state 2
+    TK_PR_BOOL        shift, and go to state 3
+    TK_PR_IF          shift, and go to state 24
+    TK_PR_WHILE       shift, and go to state 25
+    TK_PR_RETURN      shift, and go to state 26
+    TK_IDENTIFICADOR  shift, and go to state 27
+    '{'               shift, and go to state 16
+    '}'               shift, and go to state 28
+
+    comm_block   go to state 29
+    comm_lst     go to state 30
+    comm         go to state 31
+    var_decl     go to state 32
+    attrib_comm  go to state 33
+    func_call    go to state 34
+    ret_comm     go to state 35
+    flux_ctrl    go to state 36
+    type         go to state 37
+
+
+State 17
+
+    5 func: header comm_block .
+
+    $default  reduce using rule 5 (func)
+
+
+State 18
+
+   57 id_list: TK_IDENTIFICADOR .
+
+    $default  reduce using rule 57 (id_list)
+
+
+State 19
+
+    4 global_var: type id_list . ','
+   58 id_list: id_list . ';' TK_IDENTIFICADOR
+
+    ','  shift, and go to state 38
+    ';'  shift, and go to state 39
+
+
+State 20
+
+    7 header: '(' ')' TK_OC_OR . type '/' TK_IDENTIFICADOR
+
+    TK_PR_INT    shift, and go to state 1
+    TK_PR_FLOAT  shift, and go to state 2
+    TK_PR_BOOL   shift, and go to state 3
+
+    type  go to state 40
+
+
+State 21
+
+    6 header: '(' par_list ')' . TK_OC_OR type '/' TK_IDENTIFICADOR
+
+    TK_OC_OR  shift, and go to state 41
+
+
+State 22
+
+    8 par_list: par_list ';' . type TK_IDENTIFICADOR
+
+    TK_PR_INT    shift, and go to state 1
+    TK_PR_FLOAT  shift, and go to state 2
+    TK_PR_BOOL   shift, and go to state 3
+
+    type  go to state 42
+
+
+State 23
+
+    9 par_list: type TK_IDENTIFICADOR .
+
+    $default  reduce using rule 9 (par_list)
+
+
+State 24
+
+   27 flux_ctrl: TK_PR_IF . '(' exp ')' comm_block TK_PR_ELSE comm_block
+   28          | TK_PR_IF . '(' exp ')' comm_block
+
+    '('  shift, and go to state 43
+
+
+State 25
+
+   29 flux_ctrl: TK_PR_WHILE . '(' exp ')' comm_block
+
+    '('  shift, and go to state 44
+
+
+State 26
+
+   26 ret_comm: TK_PR_RETURN . exp
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    exp        go to state 54
+    or_exp     go to state 55
+    and_exp    go to state 56
+    eq_exp     go to state 57
+    comp_exp   go to state 58
+    sum_exp    go to state 59
+    mult_exp   go to state 60
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 27
+
+   21 attrib_comm: TK_IDENTIFICADOR . '=' exp
+   22 func_call: TK_IDENTIFICADOR . '(' arg_list ')'
+   23          | TK_IDENTIFICADOR . '(' ')'
+
+    '('  shift, and go to state 64
+    '='  shift, and go to state 65
+
+
+State 28
+
+   10 comm_block: '{' '}' .
+
+    $default  reduce using rule 10 (comm_block)
+
+
+State 29
+
+   14 comm: comm_block .
+
+    $default  reduce using rule 14 (comm)
+
+
+State 30
+
+   11 comm_block: '{' comm_lst . '}'
+   13 comm_lst: comm_lst . comm ','
+
+    TK_PR_INT         shift, and go to state 1
+    TK_PR_FLOAT       shift, and go to state 2
+    TK_PR_BOOL        shift, and go to state 3
+    TK_PR_IF          shift, and go to state 24
+    TK_PR_WHILE       shift, and go to state 25
+    TK_PR_RETURN      shift, and go to state 26
+    TK_IDENTIFICADOR  shift, and go to state 27
+    '{'               shift, and go to state 16
+    '}'               shift, and go to state 66
+
+    comm_block   go to state 29
+    comm         go to state 67
+    var_decl     go to state 32
+    attrib_comm  go to state 33
+    func_call    go to state 34
+    ret_comm     go to state 35
+    flux_ctrl    go to state 36
+    type         go to state 37
+
+
+State 31
+
+   12 comm_lst: comm . ','
+
+    ','  shift, and go to state 68
+
+
+State 32
+
+   15 comm: var_decl .
+
+    $default  reduce using rule 15 (comm)
+
+
+State 33
+
+   16 comm: attrib_comm .
+
+    $default  reduce using rule 16 (comm)
+
+
+State 34
+
+   17 comm: func_call .
+
+    $default  reduce using rule 17 (comm)
+
+
+State 35
+
+   18 comm: ret_comm .
+
+    $default  reduce using rule 18 (comm)
+
+
+State 36
+
+   19 comm: flux_ctrl .
+
+    $default  reduce using rule 19 (comm)
+
+
+State 37
+
+   20 var_decl: type . id_list
+
+    TK_IDENTIFICADOR  shift, and go to state 18
+
+    id_list  go to state 69
+
+
+State 38
+
+    4 global_var: type id_list ',' .
+
+    $default  reduce using rule 4 (global_var)
+
+
+State 39
+
+   58 id_list: id_list ';' . TK_IDENTIFICADOR
+
+    TK_IDENTIFICADOR  shift, and go to state 70
+
+
+State 40
+
+    7 header: '(' ')' TK_OC_OR type . '/' TK_IDENTIFICADOR
+
+    '/'  shift, and go to state 71
+
+
+State 41
+
+    6 header: '(' par_list ')' TK_OC_OR . type '/' TK_IDENTIFICADOR
+
+    TK_PR_INT    shift, and go to state 1
+    TK_PR_FLOAT  shift, and go to state 2
+    TK_PR_BOOL   shift, and go to state 3
+
+    type  go to state 72
+
+
+State 42
+
+    8 par_list: par_list ';' type . TK_IDENTIFICADOR
+
+    TK_IDENTIFICADOR  shift, and go to state 73
+
+
+State 43
+
+   27 flux_ctrl: TK_PR_IF '(' . exp ')' comm_block TK_PR_ELSE comm_block
+   28          | TK_PR_IF '(' . exp ')' comm_block
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    exp        go to state 74
+    or_exp     go to state 55
+    and_exp    go to state 56
+    eq_exp     go to state 57
+    comp_exp   go to state 58
+    sum_exp    go to state 59
+    mult_exp   go to state 60
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 44
+
+   29 flux_ctrl: TK_PR_WHILE '(' . exp ')' comm_block
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    exp        go to state 75
+    or_exp     go to state 55
+    and_exp    go to state 56
+    eq_exp     go to state 57
+    comp_exp   go to state 58
+    sum_exp    go to state 59
+    mult_exp   go to state 60
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 45
+
+   22 func_call: TK_IDENTIFICADOR . '(' arg_list ')'
+   23          | TK_IDENTIFICADOR . '(' ')'
+   53 operand: TK_IDENTIFICADOR .
+
+    '('  shift, and go to state 64
+
+    $default  reduce using rule 53 (operand)
+
+
+State 46
+
+   59 lit: TK_LIT_INT .
+
+    $default  reduce using rule 59 (lit)
+
+
+State 47
+
+   60 lit: TK_LIT_FLOAT .
+
+    $default  reduce using rule 60 (lit)
+
+
+State 48
+
+   61 lit: TK_LIT_FALSE .
+
+    $default  reduce using rule 61 (lit)
+
+
+State 49
+
+   62 lit: TK_LIT_TRUE .
+
+    $default  reduce using rule 62 (lit)
+
+
+State 50
+
+   56 operand: '(' . exp ')'
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    exp        go to state 76
+    or_exp     go to state 55
+    and_exp    go to state 56
+    eq_exp     go to state 57
+    comp_exp   go to state 58
+    sum_exp    go to state 59
+    mult_exp   go to state 60
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 51
+
+   50 un_exp: '-' . operand
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+
+    func_call  go to state 53
+    operand    go to state 77
+    lit        go to state 63
+
+
+State 52
+
+   51 un_exp: '!' . operand
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+
+    func_call  go to state 53
+    operand    go to state 78
+    lit        go to state 63
+
+
+State 53
+
+   55 operand: func_call .
+
+    $default  reduce using rule 55 (operand)
+
+
+State 54
+
+   26 ret_comm: TK_PR_RETURN exp .
+
+    $default  reduce using rule 26 (ret_comm)
+
+
+State 55
+
+   30 exp: or_exp .
+   31 or_exp: or_exp . TK_OC_OR and_exp
+
+    TK_OC_OR  shift, and go to state 79
+
+    $default  reduce using rule 30 (exp)
+
+
+State 56
+
+   32 or_exp: and_exp .
+   33 and_exp: and_exp . TK_OC_AND eq_exp
+
+    TK_OC_AND  shift, and go to state 80
+
+    $default  reduce using rule 32 (or_exp)
+
+
+State 57
+
+   34 and_exp: eq_exp .
+   35 eq_exp: eq_exp . TK_OC_EQ comp_exp
+   36       | eq_exp . TK_OC_NE comp_exp
+
+    TK_OC_EQ  shift, and go to state 81
+    TK_OC_NE  shift, and go to state 82
+
+    $default  reduce using rule 34 (and_exp)
+
+
+State 58
+
+   37 eq_exp: comp_exp .
+   38 comp_exp: comp_exp . '<' sum_exp
+   39         | comp_exp . '>' sum_exp
+   40         | comp_exp . TK_OC_LE sum_exp
+   41         | comp_exp . TK_OC_GE sum_exp
+
+    TK_OC_LE  shift, and go to state 83
+    TK_OC_GE  shift, and go to state 84
+    '<'       shift, and go to state 85
+    '>'       shift, and go to state 86
+
+    $default  reduce using rule 37 (eq_exp)
+
+
+State 59
+
+   42 comp_exp: sum_exp .
+   43 sum_exp: sum_exp . '+' mult_exp
+   44        | sum_exp . '-' mult_exp
+
+    '+'  shift, and go to state 87
+    '-'  shift, and go to state 88
+
+    $default  reduce using rule 42 (comp_exp)
+
+
+State 60
+
+   45 sum_exp: mult_exp .
+   46 mult_exp: mult_exp . '*' un_exp
+   47         | mult_exp . '/' un_exp
+   48         | mult_exp . '%' un_exp
+
+    '/'  shift, and go to state 89
+    '*'  shift, and go to state 90
+    '%'  shift, and go to state 91
+
+    $default  reduce using rule 45 (sum_exp)
+
+
+State 61
+
+   49 mult_exp: un_exp .
+
+    $default  reduce using rule 49 (mult_exp)
+
+
+State 62
+
+   52 un_exp: operand .
+
+    $default  reduce using rule 52 (un_exp)
+
+
+State 63
+
+   54 operand: lit .
+
+    $default  reduce using rule 54 (operand)
+
+
+State 64
+
+   22 func_call: TK_IDENTIFICADOR '(' . arg_list ')'
+   23          | TK_IDENTIFICADOR '(' . ')'
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    ')'               shift, and go to state 92
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    arg_list   go to state 93
+    exp        go to state 94
+    or_exp     go to state 55
+    and_exp    go to state 56
+    eq_exp     go to state 57
+    comp_exp   go to state 58
+    sum_exp    go to state 59
+    mult_exp   go to state 60
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 65
+
+   21 attrib_comm: TK_IDENTIFICADOR '=' . exp
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    exp        go to state 95
+    or_exp     go to state 55
+    and_exp    go to state 56
+    eq_exp     go to state 57
+    comp_exp   go to state 58
+    sum_exp    go to state 59
+    mult_exp   go to state 60
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 66
+
+   11 comm_block: '{' comm_lst '}' .
+
+    $default  reduce using rule 11 (comm_block)
+
+
+State 67
+
+   13 comm_lst: comm_lst comm . ','
+
+    ','  shift, and go to state 96
+
+
+State 68
+
+   12 comm_lst: comm ',' .
+
+    $default  reduce using rule 12 (comm_lst)
+
+
+State 69
+
+   20 var_decl: type id_list .
+   58 id_list: id_list . ';' TK_IDENTIFICADOR
+
+    ';'  shift, and go to state 39
+
+    $default  reduce using rule 20 (var_decl)
+
+
+State 70
+
+   58 id_list: id_list ';' TK_IDENTIFICADOR .
+
+    $default  reduce using rule 58 (id_list)
+
+
+State 71
+
+    7 header: '(' ')' TK_OC_OR type '/' . TK_IDENTIFICADOR
+
+    TK_IDENTIFICADOR  shift, and go to state 97
+
+
+State 72
+
+    6 header: '(' par_list ')' TK_OC_OR type . '/' TK_IDENTIFICADOR
+
+    '/'  shift, and go to state 98
+
+
+State 73
+
+    8 par_list: par_list ';' type TK_IDENTIFICADOR .
+
+    $default  reduce using rule 8 (par_list)
+
+
+State 74
+
+   27 flux_ctrl: TK_PR_IF '(' exp . ')' comm_block TK_PR_ELSE comm_block
+   28          | TK_PR_IF '(' exp . ')' comm_block
+
+    ')'  shift, and go to state 99
+
+
+State 75
+
+   29 flux_ctrl: TK_PR_WHILE '(' exp . ')' comm_block
+
+    ')'  shift, and go to state 100
+
+
+State 76
+
+   56 operand: '(' exp . ')'
+
+    ')'  shift, and go to state 101
+
+
+State 77
+
+   50 un_exp: '-' operand .
+
+    $default  reduce using rule 50 (un_exp)
+
+
+State 78
+
+   51 un_exp: '!' operand .
+
+    $default  reduce using rule 51 (un_exp)
+
+
+State 79
+
+   31 or_exp: or_exp TK_OC_OR . and_exp
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    and_exp    go to state 102
+    eq_exp     go to state 57
+    comp_exp   go to state 58
+    sum_exp    go to state 59
+    mult_exp   go to state 60
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 80
+
+   33 and_exp: and_exp TK_OC_AND . eq_exp
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    eq_exp     go to state 103
+    comp_exp   go to state 58
+    sum_exp    go to state 59
+    mult_exp   go to state 60
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 81
+
+   35 eq_exp: eq_exp TK_OC_EQ . comp_exp
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    comp_exp   go to state 104
+    sum_exp    go to state 59
+    mult_exp   go to state 60
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 82
+
+   36 eq_exp: eq_exp TK_OC_NE . comp_exp
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    comp_exp   go to state 105
+    sum_exp    go to state 59
+    mult_exp   go to state 60
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 83
+
+   40 comp_exp: comp_exp TK_OC_LE . sum_exp
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    sum_exp    go to state 106
+    mult_exp   go to state 60
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 84
+
+   41 comp_exp: comp_exp TK_OC_GE . sum_exp
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    sum_exp    go to state 107
+    mult_exp   go to state 60
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 85
+
+   38 comp_exp: comp_exp '<' . sum_exp
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    sum_exp    go to state 108
+    mult_exp   go to state 60
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 86
+
+   39 comp_exp: comp_exp '>' . sum_exp
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    sum_exp    go to state 109
+    mult_exp   go to state 60
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 87
+
+   43 sum_exp: sum_exp '+' . mult_exp
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    mult_exp   go to state 110
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 88
+
+   44 sum_exp: sum_exp '-' . mult_exp
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    mult_exp   go to state 111
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 89
+
+   47 mult_exp: mult_exp '/' . un_exp
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    un_exp     go to state 112
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 90
+
+   46 mult_exp: mult_exp '*' . un_exp
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    un_exp     go to state 113
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 91
+
+   48 mult_exp: mult_exp '%' . un_exp
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    un_exp     go to state 114
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 92
+
+   23 func_call: TK_IDENTIFICADOR '(' ')' .
+
+    $default  reduce using rule 23 (func_call)
+
+
+State 93
+
+   22 func_call: TK_IDENTIFICADOR '(' arg_list . ')'
+   25 arg_list: arg_list . ';' exp
+
+    ')'  shift, and go to state 115
+    ';'  shift, and go to state 116
+
+
+State 94
+
+   24 arg_list: exp .
+
+    $default  reduce using rule 24 (arg_list)
+
+
+State 95
+
+   21 attrib_comm: TK_IDENTIFICADOR '=' exp .
+
+    $default  reduce using rule 21 (attrib_comm)
+
+
+State 96
+
+   13 comm_lst: comm_lst comm ',' .
+
+    $default  reduce using rule 13 (comm_lst)
+
+
+State 97
+
+    7 header: '(' ')' TK_OC_OR type '/' TK_IDENTIFICADOR .
+
+    $default  reduce using rule 7 (header)
+
+
+State 98
+
+    6 header: '(' par_list ')' TK_OC_OR type '/' . TK_IDENTIFICADOR
+
+    TK_IDENTIFICADOR  shift, and go to state 117
+
+
+State 99
+
+   27 flux_ctrl: TK_PR_IF '(' exp ')' . comm_block TK_PR_ELSE comm_block
+   28          | TK_PR_IF '(' exp ')' . comm_block
+
+    '{'  shift, and go to state 16
+
+    comm_block  go to state 118
+
+
+State 100
+
+   29 flux_ctrl: TK_PR_WHILE '(' exp ')' . comm_block
+
+    '{'  shift, and go to state 16
+
+    comm_block  go to state 119
+
+
+State 101
+
+   56 operand: '(' exp ')' .
+
+    $default  reduce using rule 56 (operand)
+
+
+State 102
+
+   31 or_exp: or_exp TK_OC_OR and_exp .
+   33 and_exp: and_exp . TK_OC_AND eq_exp
+
+    TK_OC_AND  shift, and go to state 80
+
+    $default  reduce using rule 31 (or_exp)
+
+
+State 103
+
+   33 and_exp: and_exp TK_OC_AND eq_exp .
+   35 eq_exp: eq_exp . TK_OC_EQ comp_exp
+   36       | eq_exp . TK_OC_NE comp_exp
+
+    TK_OC_EQ  shift, and go to state 81
+    TK_OC_NE  shift, and go to state 82
+
+    $default  reduce using rule 33 (and_exp)
+
+
+State 104
+
+   35 eq_exp: eq_exp TK_OC_EQ comp_exp .
+   38 comp_exp: comp_exp . '<' sum_exp
+   39         | comp_exp . '>' sum_exp
+   40         | comp_exp . TK_OC_LE sum_exp
+   41         | comp_exp . TK_OC_GE sum_exp
+
+    TK_OC_LE  shift, and go to state 83
+    TK_OC_GE  shift, and go to state 84
+    '<'       shift, and go to state 85
+    '>'       shift, and go to state 86
+
+    $default  reduce using rule 35 (eq_exp)
+
+
+State 105
+
+   36 eq_exp: eq_exp TK_OC_NE comp_exp .
+   38 comp_exp: comp_exp . '<' sum_exp
+   39         | comp_exp . '>' sum_exp
+   40         | comp_exp . TK_OC_LE sum_exp
+   41         | comp_exp . TK_OC_GE sum_exp
+
+    TK_OC_LE  shift, and go to state 83
+    TK_OC_GE  shift, and go to state 84
+    '<'       shift, and go to state 85
+    '>'       shift, and go to state 86
+
+    $default  reduce using rule 36 (eq_exp)
+
+
+State 106
+
+   40 comp_exp: comp_exp TK_OC_LE sum_exp .
+   43 sum_exp: sum_exp . '+' mult_exp
+   44        | sum_exp . '-' mult_exp
+
+    '+'  shift, and go to state 87
+    '-'  shift, and go to state 88
+
+    $default  reduce using rule 40 (comp_exp)
+
+
+State 107
+
+   41 comp_exp: comp_exp TK_OC_GE sum_exp .
+   43 sum_exp: sum_exp . '+' mult_exp
+   44        | sum_exp . '-' mult_exp
+
+    '+'  shift, and go to state 87
+    '-'  shift, and go to state 88
+
+    $default  reduce using rule 41 (comp_exp)
+
+
+State 108
+
+   38 comp_exp: comp_exp '<' sum_exp .
+   43 sum_exp: sum_exp . '+' mult_exp
+   44        | sum_exp . '-' mult_exp
+
+    '+'  shift, and go to state 87
+    '-'  shift, and go to state 88
+
+    $default  reduce using rule 38 (comp_exp)
+
+
+State 109
+
+   39 comp_exp: comp_exp '>' sum_exp .
+   43 sum_exp: sum_exp . '+' mult_exp
+   44        | sum_exp . '-' mult_exp
+
+    '+'  shift, and go to state 87
+    '-'  shift, and go to state 88
+
+    $default  reduce using rule 39 (comp_exp)
+
+
+State 110
+
+   43 sum_exp: sum_exp '+' mult_exp .
+   46 mult_exp: mult_exp . '*' un_exp
+   47         | mult_exp . '/' un_exp
+   48         | mult_exp . '%' un_exp
+
+    '/'  shift, and go to state 89
+    '*'  shift, and go to state 90
+    '%'  shift, and go to state 91
+
+    $default  reduce using rule 43 (sum_exp)
+
+
+State 111
+
+   44 sum_exp: sum_exp '-' mult_exp .
+   46 mult_exp: mult_exp . '*' un_exp
+   47         | mult_exp . '/' un_exp
+   48         | mult_exp . '%' un_exp
+
+    '/'  shift, and go to state 89
+    '*'  shift, and go to state 90
+    '%'  shift, and go to state 91
+
+    $default  reduce using rule 44 (sum_exp)
+
+
+State 112
+
+   47 mult_exp: mult_exp '/' un_exp .
+
+    $default  reduce using rule 47 (mult_exp)
+
+
+State 113
+
+   46 mult_exp: mult_exp '*' un_exp .
+
+    $default  reduce using rule 46 (mult_exp)
+
+
+State 114
+
+   48 mult_exp: mult_exp '%' un_exp .
+
+    $default  reduce using rule 48 (mult_exp)
+
+
+State 115
+
+   22 func_call: TK_IDENTIFICADOR '(' arg_list ')' .
+
+    $default  reduce using rule 22 (func_call)
+
+
+State 116
+
+   25 arg_list: arg_list ';' . exp
+
+    TK_IDENTIFICADOR  shift, and go to state 45
+    TK_LIT_INT        shift, and go to state 46
+    TK_LIT_FLOAT      shift, and go to state 47
+    TK_LIT_FALSE      shift, and go to state 48
+    TK_LIT_TRUE       shift, and go to state 49
+    '('               shift, and go to state 50
+    '-'               shift, and go to state 51
+    '!'               shift, and go to state 52
+
+    func_call  go to state 53
+    exp        go to state 120
+    or_exp     go to state 55
+    and_exp    go to state 56
+    eq_exp     go to state 57
+    comp_exp   go to state 58
+    sum_exp    go to state 59
+    mult_exp   go to state 60
+    un_exp     go to state 61
+    operand    go to state 62
+    lit        go to state 63
+
+
+State 117
+
+    6 header: '(' par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR .
+
+    $default  reduce using rule 6 (header)
+
+
+State 118
+
+   27 flux_ctrl: TK_PR_IF '(' exp ')' comm_block . TK_PR_ELSE comm_block
+   28          | TK_PR_IF '(' exp ')' comm_block .
+
+    TK_PR_ELSE  shift, and go to state 121
+
+    $default  reduce using rule 28 (flux_ctrl)
+
+
+State 119
+
+   29 flux_ctrl: TK_PR_WHILE '(' exp ')' comm_block .
+
+    $default  reduce using rule 29 (flux_ctrl)
+
+
+State 120
+
+   25 arg_list: arg_list ';' exp .
+
+    $default  reduce using rule 25 (arg_list)
+
+
+State 121
+
+   27 flux_ctrl: TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE . comm_block
+
+    '{'  shift, and go to state 16
+
+    comm_block  go to state 122
+
+
+State 122
+
+   27 flux_ctrl: TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block .
+
+    $default  reduce using rule 27 (flux_ctrl)

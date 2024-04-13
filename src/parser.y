@@ -38,23 +38,26 @@ program:          /* empty */
 global_var:       type id_list ','
                 ;
 
-func:         header '{' comm_block '}'
+func:         header comm_block 
 		;
 
 header:		  '(' par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR{$$ = $0;}
+			| '(' ')' TK_OC_OR type '/' TK_IDENTIFICADOR{$$ = $0;}
 		;
 
-par_list:	  /* empty */  	
-		| par_list ';' type TK_IDENTIFICADOR {$$ = $0;}
+par_list:	  par_list ';' type TK_IDENTIFICADOR {$$ = $0;}
 		| type TK_IDENTIFICADOR {$$ = $0;}
 		;
 
-comm_block:	  /* empty */
-	        | comm ','
-	     	| comm_block  comm ','
+comm_block:	  '{' '}'	/*vírgula?*/
+	     	| '{' comm_lst '}' /*vírgula?*/
 		;
 
-comm:  		 '{' comm_block '}'
+comm_lst:	  comm ','
+	     	| comm_lst  comm ','
+		;
+
+comm:  		  comm_block 
        		| var_decl
 		| attrib_comm	
 		| func_call
@@ -69,79 +72,79 @@ attrib_comm:	  TK_IDENTIFICADOR '=' exp	{$$ = $0;}
 	   	;
 
 func_call:	  TK_IDENTIFICADOR '(' arg_list ')'{$$ = $0;}
+			| TK_IDENTIFICADOR '(' ')'{$$ = $0;}
 	 	;
 
-arg_list:	  /* empty */
-		| exp ';'
-		| arg_list exp
+arg_list: exp
+		| arg_list ';' exp
 		;
 
 ret_comm:	  TK_PR_RETURN exp{$$ = $0;}
 		;
 
-flux_ctrl:     	  TK_PR_IF '(' exp ')' '{' comm_block '}' TK_PR_ELSE '{' comm_block '}' {$$ = $0;} 
-		| TK_PR_IF '(' exp ')' '{'comm_block '}' {$$ = $0;}
-		| TK_PR_WHILE '(' exp ')' '{'comm_block '}' {$$ = $0;}
+flux_ctrl:     	  TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block {$$ = $0;} 
+		| TK_PR_IF '(' exp ')' comm_block {$$ = $0;}
+		| TK_PR_WHILE '(' exp ')' comm_block {$$ = $0;}
 		;
 
-exp: 		  exp bi_op_7 exp
-   		| exp bi_op_6 exp
-   		| exp bi_op_5 exp
-   		| exp bi_op_4 exp
-   		| exp bi_op_3 exp
-   		| exp bi_op_2 exp
-		| un_op_1 exp
-		| operand
-		;
+exp: 		  or_exp
 
-operand:	  TK_IDENTIFICADOR{$$ = $0;}
-		| lit
-		| func_call
-		;
-
-un_op_1:	  '-'{$$ = $0;}
-     	| '!'{$$ = $0;}
-         ;
-
-
-bi_op_2:   '*'{$$ = $0;}
-         | '/'{$$ = $0;}
-         | '%'{$$ = $0;}
-         ; 
-
-bi_op_3:   '+'{$$ = $0;}
-         | '-'{$$ = $0;}
-         ;
-
-bi_op_4:   '<'{$$ = $0;}
-         | '>'{$$ = $0;}
-         | TK_OC_LE{$$ = $0;}
-         | TK_OC_GE{$$ = $0;}
-         ;
-
-bi_op_5:   TK_OC_EQ{$$ = $0;}
-         | TK_OC_NE{$$ = $0;}
-         ;
-
-bi_op_6:   TK_OC_AND{$$ = $0;}
-       	;
-
-bi_op_7:   TK_OC_OR {$$ = $0;}
+or_exp:   or_exp TK_OC_OR and_exp 
+		| and_exp
 	      	;
 
-id_list:         TK_IDENTIFICADOR {$$ = $0;} 
+and_exp:   and_exp TK_OC_AND eq_exp
+		| eq_exp
+       	;
+
+eq_exp:   eq_exp TK_OC_EQ comp_exp
+         | eq_exp TK_OC_NE comp_exp
+		 | comp_exp
+         ;
+
+comp_exp:   comp_exp '<' sum_exp
+         | comp_exp '>' sum_exp
+         | comp_exp TK_OC_LE sum_exp
+         | comp_exp TK_OC_GE sum_exp
+		 | sum_exp
+         ;
+
+sum_exp:   sum_exp '+' mult_exp
+         | sum_exp '-' mult_exp
+		 | mult_exp
+         ;
+
+mult_exp:   mult_exp '*' un_exp
+         | mult_exp '/' un_exp
+         | mult_exp '%' un_exp
+		 | un_exp
+         ; 
+
+un_exp:  '-' operand
+     	| '!' operand
+		| operand
+         ;
+
+operand:	  TK_IDENTIFICADOR
+		| lit
+		| func_call
+		| '(' exp ')'
+		;
+
+
+id_list:         TK_IDENTIFICADOR 
                 |id_list ';' TK_IDENTIFICADOR  
                 ;
 
-lit:		  TK_LIT_INT    {$$ = $0;}
-                | TK_LIT_FLOAT  {$$ = $0;}
-                | TK_LIT_FALSE  {$$ = $0;}
-                | TK_LIT_TRUE   {$$ = $0;}
+lit:		  TK_LIT_INT    
+                | TK_LIT_FLOAT  
+                | TK_LIT_FALSE  
+                | TK_LIT_TRUE   
 		;
 
 
-type:             TK_PR_INT   {$$ = $0;} 
-                | TK_PR_FLOAT {$$ = $0;}
-                | TK_PR_BOOL  {$$ = $0;}
+type:             TK_PR_INT   
+                | TK_PR_FLOAT 
+                | TK_PR_BOOL  
                 ;   
 %%
