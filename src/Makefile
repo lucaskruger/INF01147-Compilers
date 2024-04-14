@@ -16,7 +16,7 @@ _OBJ = lex.yy.o parser.tab.o main.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(RELEASE): $(OBJ) 
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+	$(CC) -o ../$@ $^ $(CFLAGS) $(LIBS)
 
 $(ODIR)/%.o: %.c $(DEPS) | $(ODIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
@@ -33,4 +33,4 @@ lex.yy.c: scanner.l
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ parser.tab.c parser.tab.h lex.yy.c 
+	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ parser.tab.c parser.tab.h lex.yy.c $(RELEASE)

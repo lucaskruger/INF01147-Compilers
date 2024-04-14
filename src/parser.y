@@ -1,3 +1,7 @@
+// Lucas Kruger
+// Nikolas Tesche
+
+
 %define parse.error verbose
 %{
 #include <stdio.h>
@@ -29,6 +33,7 @@ fprintf (stderr, "%s line: %d\n", mensagem, get_line_number());
 %token TK_ERRO
 
 %%
+//initial non terminal
 
 program:          /* empty */
                 | global_var program   
@@ -38,19 +43,19 @@ program:          /* empty */
 global_var:       type id_list ','
                 ;
 
-func:         header comm_block 
+func:             header comm_block 
 		;
 
-header:		  '(' par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR{$$ = $0;}
-			| '(' ')' TK_OC_OR type '/' TK_IDENTIFICADOR{$$ = $0;}
+header:		  '(' par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR
+		| '(' ')' TK_OC_OR type '/' TK_IDENTIFICADOR
 		;
 
-par_list:	  par_list ';' type TK_IDENTIFICADOR {$$ = $0;}
-		| type TK_IDENTIFICADOR {$$ = $0;}
+par_list:	  par_list ';' type TK_IDENTIFICADOR 
+		| type TK_IDENTIFICADOR 
 		;
 
-comm_block:	  '{' '}'	/*vírgula?*/
-	     	| '{' comm_lst '}' /*vírgula?*/
+comm_block:	  '{' '}'	
+	     	| '{' comm_lst '}' 
 		;
 
 comm_lst:	  comm ','
@@ -68,62 +73,65 @@ comm:  		  comm_block
 var_decl: 	  type id_list 
 		;
 
-attrib_comm:	  TK_IDENTIFICADOR '=' exp	{$$ = $0;}
+attrib_comm:	  TK_IDENTIFICADOR '=' exp	
 	   	;
 
-func_call:	  TK_IDENTIFICADOR '(' arg_list ')'{$$ = $0;}
-			| TK_IDENTIFICADOR '(' ')'{$$ = $0;}
+func_call:	  TK_IDENTIFICADOR '(' arg_list ')'
+		| TK_IDENTIFICADOR '(' ')'
 	 	;
 
 arg_list: exp
 		| arg_list ';' exp
 		;
 
-ret_comm:	  TK_PR_RETURN exp{$$ = $0;}
+ret_comm:	  TK_PR_RETURN exp
 		;
 
-flux_ctrl:     	  TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block {$$ = $0;} 
-		| TK_PR_IF '(' exp ')' comm_block {$$ = $0;}
-		| TK_PR_WHILE '(' exp ')' comm_block {$$ = $0;}
+flux_ctrl:     	  TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block 
+		| TK_PR_IF '(' exp ')' comm_block 
+		| TK_PR_WHILE '(' exp ')' comm_block 
 		;
+
+// expression precedence implemented by processing least to most
 
 exp: 		  or_exp
+		;
 
-or_exp:   or_exp TK_OC_OR and_exp 
+or_exp:  	 or_exp TK_OC_OR and_exp 
 		| and_exp
 	      	;
 
-and_exp:   and_exp TK_OC_AND eq_exp
+and_exp:  	 and_exp TK_OC_AND eq_exp
 		| eq_exp
-       	;
+       		;
 
-eq_exp:   eq_exp TK_OC_EQ comp_exp
-         | eq_exp TK_OC_NE comp_exp
-		 | comp_exp
-         ;
+eq_exp: 	  eq_exp TK_OC_EQ comp_exp
+       		| eq_exp TK_OC_NE comp_exp
+		| comp_exp
+        	;
 
-comp_exp:   comp_exp '<' sum_exp
-         | comp_exp '>' sum_exp
-         | comp_exp TK_OC_LE sum_exp
-         | comp_exp TK_OC_GE sum_exp
-		 | sum_exp
-         ;
+comp_exp:      	  comp_exp '<' sum_exp
+       		| comp_exp '>' sum_exp
+       		| comp_exp TK_OC_LE sum_exp
+       		| comp_exp TK_OC_GE sum_exp
+        	| sum_exp
+       		;
 
-sum_exp:   sum_exp '+' mult_exp
-         | sum_exp '-' mult_exp
-		 | mult_exp
-         ;
+sum_exp:	   sum_exp '+' mult_exp
+        	| sum_exp '-' mult_exp
+		| mult_exp
+        	;
 
-mult_exp:   mult_exp '*' un_exp
-         | mult_exp '/' un_exp
-         | mult_exp '%' un_exp
-		 | un_exp
-         ; 
+mult_exp: 	   mult_exp '*' un_exp
+        	| mult_exp '/' un_exp
+       	        | mult_exp '%' un_exp
+	        | un_exp
+	         ; 
 
-un_exp:  '-' operand
-     	| '!' operand
+un_exp:		  '-' operand
+     	       	| '!' operand
 		| operand
-         ;
+       		 ;
 
 operand:	  TK_IDENTIFICADOR
 		| lit
