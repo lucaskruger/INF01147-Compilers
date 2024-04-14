@@ -1,2 +1,2 @@
-all: ../src/etapa2 test
-	../src/etapa2 < test
+all: ../etapa2 test
+	../etapa2 < test

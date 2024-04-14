@@ -1,3 +1,5 @@
+/* Lucas Kruger e Nicolas Tesche*/
+
 %{
 #include <stdio.h>
 #include "parser.tab.h"
