@@ -1,4 +1,4 @@
-RELEASE = etapa2
+RELEASE = etapa3
 
 IDIR =../include
 CC=gcc
@@ -12,7 +12,7 @@ LIBS=-lm
 _DEPS = 
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = lex.yy.o parser.tab.o main.o  
+_OBJ = ast.o parser.tab.o lex.yy.o main.o  
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(RELEASE): $(OBJ) 
@@ -27,7 +27,7 @@ $(ODIR):
 parser.tab.c: parser.y
 	bison -d parser.y --report-file=.parser.output --verbose 
 
-lex.yy.c: scanner.l
+lex.yy.c: scanner.l parser.tab.c
 	flex scanner.l
 
 .PHONY: clean
