@@ -1,16 +1,21 @@
-// Lucas Kruger
-// Nikolas Tesche
-
+// Lucas Kruger Nikolas Tesche
 
 %define parse.error verbose
 %{
+#include "../include/data.h"
+#include "../include/ast.h"
 #include <stdio.h>
+
 int yylex(void);
 extern int get_line_number();
-void yyerror (char const *mensagem){
-fprintf (stderr, "%s line: %d\n", mensagem, get_line_number());
-}
+void yyerror (char const *mensagem);
+void yylex_destroy();
 %}
+
+%union{
+  struct lexical_value_type* lex_val; 
+  struct asl_node_type*  node;
+}
 
 %token TK_PR_INT
 %token TK_PR_FLOAT
@@ -165,3 +170,8 @@ type:             TK_PR_INT
                 | TK_PR_BOOL
                 ;
 %%
+
+void yyerror (char const *mensagem){
+fprintf (stderr, "%s line: %d\n", mensagem, get_line_number());
+}
+

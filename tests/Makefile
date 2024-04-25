@@ -1,2 +1,4 @@
-all: ../etapa2 test
-	../etapa2 < test
+RELEASE = etapa3
+
+all: ../$(RELEASE) test
+	../$(RELEASE) < test
