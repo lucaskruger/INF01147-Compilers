@@ -5,10 +5,10 @@
 
 typedef enum token_type { ID, LIT } tk_t;
 // hello
-typedef struct lexical_value_type {
+typedef struct lexical_value {
   int line_number;
   tk_t tk_type;
-  char *tk_value;
+  char *tk_value; // TODO: is this the label?
 } lex_val_t;
 
 typedef struct asl_node_type {
