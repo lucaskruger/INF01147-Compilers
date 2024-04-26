@@ -5,10 +5,10 @@
 
 extern void exporta(void *arvore);
 
-struct asl_node_type *create_tree();
-struct asl_node_type *create_node(struct lexical_value_type *val);
-int insert_node();
-int delete_node();
+node_t *create_tree();
+node_t *create_node(lex_val_t *val);
+int insert_node(node_t *node, node_t *par, int pos);
+int delete_node(node_t *node);
 int print_tree();
 
 #endif
