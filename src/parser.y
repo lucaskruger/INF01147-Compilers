@@ -1,13 +1,14 @@
-// Lucas Kruger Nikolas Tesche
+// Lucas Kruger e Nikolas Tesche
 
 %define parse.error verbose
+//%define api.value.type { int } 
 %{
-#include "../include/data.h"
 #include "../include/ast.h"
 #include <stdio.h>
 
 int yylex(void);
 extern int get_line_number();
+extern void *arvore;
 void yyerror (char const *mensagem);
 void yylex_destroy();
 %}
@@ -16,6 +17,9 @@ void yylex_destroy();
   struct lexical_value_type* lex_val; 
   struct asl_node_type*  node;
 }
+
+%type<node> TK_IDENTIFICADOR id_list
+%type<lex_val> lit TK_LIT_INT TK_LIT_FLOAT TK_LIT_FALSE TK_LIT_TRUE  
 
 %token TK_PR_INT
 %token TK_PR_FLOAT
@@ -42,7 +46,7 @@ void yylex_destroy();
 
 program:          /* empty */
                 | global_var program   
-                | func program    
+                | func program
                 ;    
 
 // 3.1 Variable declaration
@@ -154,11 +158,11 @@ operand:           TK_IDENTIFICADOR
 
 // Misc: Types, Literals and Identifiers
 
-id_list:          TK_IDENTIFICADOR 
-                | id_list ';' TK_IDENTIFICADOR  
+id_list:          TK_IDENTIFICADOR {$$ = $1; arvore = (void*) $$;}
+                | id_list ';' TK_IDENTIFICADOR {$$ = $3;}
                 ;
 
-lit:              TK_LIT_INT
+lit:              TK_LIT_INT                      
                 | TK_LIT_FLOAT
                 | TK_LIT_FALSE
                 | TK_LIT_TRUE

@@ -131,11 +131,11 @@ Terminals, with rules where they appear
     TK_OC_NE (268) 36
     TK_OC_AND (269) 33
     TK_OC_OR (270) 6 7 31
-    TK_IDENTIFICADOR (271) 6 7 8 9 24 25 26 53 57 58
-    TK_LIT_INT (272) 59
-    TK_LIT_FLOAT (273) 60
-    TK_LIT_FALSE (274) 61
-    TK_LIT_TRUE (275) 62
+    TK_IDENTIFICADOR <node> (271) 6 7 8 9 24 25 26 53 57 58
+    TK_LIT_INT <lex_val> (272) 59
+    TK_LIT_FLOAT <lex_val> (273) 60
+    TK_LIT_FALSE <lex_val> (274) 61
+    TK_LIT_TRUE <lex_val> (275) 62
     TK_ERRO (276)
 
 
@@ -212,10 +212,10 @@ Nonterminals, with rules where they appear
     operand (60)
         on left: 53 54 55 56
         on right: 52
-    id_list (61)
+    id_list <node> (61)
         on left: 57 58
         on right: 4 23 58
-    lit (62)
+    lit <lex_val> (62)
         on left: 59 60 61 62
         on right: 54
     type (63)

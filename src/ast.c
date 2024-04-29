@@ -1,40 +1,110 @@
 #include "../include/ast.h"
-#include "../include/data.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#define OUTPUT_FILE "output"
 
-node_t *create_tree() { return 0; }
+lex_val_t *create_lex_val(int line, tk_t type, char *value) {
+  lex_val_t *lex_val = NULL;
+  lex_val = calloc(1, sizeof(lex_val_t));
+  if (lex_val != NULL) {
+    lex_val->line_number = line;
+    lex_val->tk_type = type;
+    lex_val->tk_value = value;
+  } else {
+    fprintf(stderr, "Error: %s got parameters = %d/ %u / %s", __FUNCTION__,
+            line, type, value);
+  }
+  return lex_val;
+}
 
-node_t *create_node(lex_val_t *val) {
-  node_t *node = (node_t *)calloc(sizeof(node_t), 0);
-  node->lex_val = (lex_val_t *)calloc(sizeof(lex_val_t), 0);
-  node->lex_val = val;
+node_t *create_node(const lex_val_t *val) {
+  node_t *node = NULL;
+  node = calloc(1, sizeof(node_t));
+  if (node != NULL) {
+    node->lex_val = (lex_val_t *)calloc(sizeof(lex_val_t), 0);
+    if (node->lex_val != NULL) {
+      node->lex_val->tk_value = strdup(val->tk_value);
+    }
+  }
   // TODO: node_t.type needed?
   return node;
 }
 
-int insert_node(node_t *node, node_t *par, int pos) {
-  par->children[pos] = node;
-  node->parent = par;
-  return 0;
+void add_child(node_t *par, node_t *child) {
+  if (par != NULL && child != NULL) {
+    par->number_of_children++;
+    par->children =
+        realloc(par->children, par->number_of_children * sizeof(node_t *));
+    par->children[par->number_of_children - 1] = child;
+  } else {
+    fprintf(stderr, "Error: %s got parameters = %p / %p. \n", __FUNCTION__, par,
+            child);
+  }
 }
 
-// NOTE: will delete nodes with information and all it's children
-
-int delete_node(node_t *node) {
+void free_node(node_t *node) {
   if (node != NULL) {
-    for (int i = MAX_CHILDREN - 1; i >= 0; i--) {
-      if (node->children[i] != NULL) {
-        delete_node(node->children[i]);
-      }
+    for (int i = 0; i < node->number_of_children; i++) {
+      free_node(node->children[i]);
     }
-  }
-  // NOTE: this assumes children always get filled in order
-  if (node->children[0] == NULL) {
-    free(node->lex_val);
+    free(node->children);
+    free(node->lex_val); // TODO: make is so it frees the whole struct
     free(node);
+  } else {
+    fprintf(stderr, "Error: %s got parameters = %p", __FUNCTION__, node);
   }
-  return 0;
 }
-int print_tree() { return 0; }
-void exporta(void *arvore) { printf("hello"); }
+
+static void _print_tree(FILE *foutput, node_t *node, int profundidade) {
+  int i;
+  if (node != NULL) {
+    fprintf(foutput, "%d%*s: Nó '%s' tem %d filhos:\n", profundidade,
+            profundidade * 2, "", node->lex_val->tk_value,
+            node->number_of_children);
+    for (i = 0; i < node->number_of_children; i++) {
+      _print_tree(foutput, node->children[i], profundidade + 1);
+    }
+  } else {
+    printf("Erro: %s recebeu parâmetro node = %p.\n", __FUNCTION__, node);
+  }
+}
+
+void print_tree(node_t *node) {
+  FILE *foutput = stderr;
+  if (node != NULL) {
+    _print_tree(foutput, node, 0);
+  } else {
+    printf("Erro: %s recebeu parâmetro node = %p.\n", __FUNCTION__, node);
+  }
+}
+
+static void _exporta(FILE *foutput, node_t *node) {
+  int i;
+  if (node != NULL) {
+    fprintf(foutput, "  %ld [ label=\"%s\" ];\n", (long)node,
+            node->lex_val->tk_value);
+    for (i = 0; i < node->number_of_children; i++) {
+      fprintf(foutput, "  %ld -> %ld;\n", (long)node, (long)node->children[i]);
+      _exporta(foutput, node->children[i]);
+    }
+  } else {
+    printf("Erro: %s recebeu parâmetro node = %p.\n", __FUNCTION__, node);
+  }
+}
+
+extern void exporta(void *node) {
+  FILE *foutput = fopen(OUTPUT_FILE, "w+");
+  if (foutput == NULL) {
+    printf("Erro: %s não pude abrir o arquivo [%s] para escrita.\n",
+           __FUNCTION__, OUTPUT_FILE);
+  }
+  if (node != NULL) {
+    fprintf(foutput, "AST NODES {\n");
+    _exporta(foutput, node);
+    fprintf(foutput, "}\n");
+    fclose(foutput);
+  } else {
+    printf("Erro: %s recebeu parâmetro node = %p.\n", __FUNCTION__, node);
+  }
+}
