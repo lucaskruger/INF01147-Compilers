@@ -6,6 +6,7 @@ all:
 
 clean: 
 	make -C ./src clean
+	make -C ./tests clean
 	rm ./$(RELEASE) 
 
 tar: 
@@ -13,3 +14,6 @@ tar:
 
 test: 
 	make -C ./tests
+
+display:
+	make -C ./tests display

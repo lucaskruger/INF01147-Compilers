@@ -2,7 +2,10 @@
 
 %{
 #include <stdio.h>
+#include <string.h>
 #include "parser.tab.h"
+#include "../include/ast.h"
+int get_line_number(void);
 %}
 
 %option yylineno
@@ -13,7 +16,6 @@ LETTER	[a-z]
 DIGIT	[0-9]
 
 %%
-
 
  /*  reserved words */
 
@@ -28,7 +30,7 @@ return 	{return TK_PR_RETURN;}
 
  /*int and flat numbers */  
 
-{DIGIT}+	{return TK_LIT_INT;}
+{DIGIT}+	{ return TK_LIT_INT;}
 {DIGIT}*\.{DIGIT}+	{return TK_LIT_FLOAT;}
 
 
@@ -51,7 +53,7 @@ false	{return TK_LIT_FALSE;}
  /*returns the charact's asci number */
 
 [-!*/%+<>{}()=,;]	{return (int)yytext[0];}
-(_|{LETTER})(_|{LETTER}|{DIGIT})*	{return TK_IDENTIFICADOR;}
+(_|{LETTER})(_|{LETTER}|{DIGIT})*	{yylval.node = create_node(create_lex_val(1,ID,strdup(yytext))); return TK_IDENTIFICADOR;} 
 "//"(.)*\n	
 
 
