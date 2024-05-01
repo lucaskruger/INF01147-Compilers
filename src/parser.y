@@ -21,10 +21,10 @@ void yylex_destroy();
 
 %type<node> program comm_block comm_lst comm var_decl id_list global_var attrib_comm exp ret_comm flux_ctrl
 %type<node> or_exp un_exp sum_exp and_exp comp_exp mult_exp eq_exp 
-%type<node> func func_call arg_list par_list
+%type<node> func func_call arg_list par_list header
 %type<node> lit operand
 %type<node> '=''<''>''+''-''*''/''%''!'
-%type<filler> type header 
+%type<filler> type 
 
 %token<filler> TK_PR_INT
 %token<filler> TK_PR_FLOAT
@@ -49,7 +49,7 @@ void yylex_destroy();
 %%
 //initial non terminal
 
-program:          /* empty */
+program:          {$$ = NULL;}/* empty */
                 | global_var program   { add_child($1,$2); $$ = $1; arvore = (void*) $$;}
                 | func program{ add_child($1,$2); $$ = $1; arvore = (void*) $$;}
                 ;
@@ -60,27 +60,27 @@ global_var:       var_decl ',' {$$ = $1;}
                 ;
                 // 3.2 Function definition
 
-func:             header comm_block {$$ = $2;}
+func:             header comm_block {if($2 != NULL) add_child($1, $2); $$ = $1;}
                 ;
 
-header:           '(' par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR
-                | '(' ')' TK_OC_OR type '/' TK_IDENTIFICADOR
+header:           '(' par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR {add_child($7,$2); $$ = $7;}
+                | '(' ')' TK_OC_OR type '/' TK_IDENTIFICADOR {$$ = $5;}
                 ;
 
 par_list:         par_list ';' type TK_IDENTIFICADOR {add_child($1,$4); $$ = $1;}
                 | type TK_IDENTIFICADOR { $$ = $2;}
                 ;
 
-arg_list:         exp
-                | arg_list ';' exp
+arg_list:         exp {$$ = $1;}
+                | arg_list ';' exp {add_child($1, $3);}
                 ;
 
-ret_comm:         TK_PR_RETURN exp {add_child($1,$2); $$ = $1;}
+ret_comm:         TK_PR_RETURN exp {add_child($1,$2); update_label($1,"return"); $$ = $1;} 
                 ;
 
 // 3.3 Command Block
 
-comm_block:       '{' '}'//func can have only one child if it is empty
+comm_block:       '{' '}' {$$ = NULL;}//func can have only one child if it is empty
                 | '{' comm_lst '}' {$$ = $2;}
                 ;
 
@@ -90,7 +90,7 @@ comm_lst:         comm ','{$$ = $1;}
 
 // 3.4 Simple Command 
 
-comm:             comm_block 
+comm:             comm_block {$$ = $1;} 
                 | var_decl {$$ = $1;}
                 | attrib_comm	{$$ = $1;} 
                 | func_call{$$ = $1;} 
@@ -101,16 +101,16 @@ comm:             comm_block
 var_decl:         type id_list {$$ = $2;}
                 ;
 
-attrib_comm:      TK_IDENTIFICADOR '=' exp	{add_child($2,$1); add_child($2,$3); $$ = $2;}
+attrib_comm:      TK_IDENTIFICADOR '=' exp	{add_child($2,$1); add_child($2,$3);update_label($2,"="); $$ = $2;}
                 ;
 
 func_call:        TK_IDENTIFICADOR '(' arg_list ')' {add_child($1,$3);update_label($1,"call"); $$ = $1;} 
                 | TK_IDENTIFICADOR '(' ')' { $$ = $1;}
                 ;
 
-flux_ctrl:        TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block 
-                | TK_PR_IF '(' exp ')' comm_block 
-                | TK_PR_WHILE '(' exp ')' comm_block 
+flux_ctrl:        TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block {add_child($1,$3); add_child($1,$6); add_child($1,$7);update_label($1,"if");; $$ = $1;}
+                | TK_PR_IF '(' exp ')' comm_block {add_child($1,$3); add_child($1,$5);update_label($1,"if"); $$ = $1;}
+                | TK_PR_WHILE '(' exp ')' comm_block {add_child($1,$3); add_child($1,$5); $$ = $1;}
                 ;
 
 // 3.5 Expressions
@@ -149,8 +149,8 @@ mult_exp:         mult_exp '*' un_exp{add_child($2,$1); add_child($2,$3); $$ = $
                 | un_exp{$$ = $1;}
                 ;
 
-un_exp:           '-' un_exp{add_child($1, $2); $$ = $1;}
-                | '!' un_exp{add_child($1, $2); $$ = $1;}
+un_exp:           '-' un_exp{add_child($1, $2);update_label($1,"-"); $$ = $1;}
+                | '!' un_exp{add_child($1, $2);update_label($1,"!"); $$ = $1;}
                 | operand{$$ = $1;}
                 ;
 
