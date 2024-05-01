@@ -7,7 +7,7 @@
 
 lex_val_t *create_lex_val(int line, tk_t type, char *value) {
   lex_val_t *lex_val = NULL;
-  lex_val = calloc(1, sizeof(lex_val_t));
+  lex_val = (lex_val_t *)calloc(1, sizeof(lex_val_t));
   if (lex_val != NULL) {
     lex_val->line_number = line;
     lex_val->tk_type = type;
@@ -27,11 +27,14 @@ node_t *create_node(const lex_val_t *val) {
   node = calloc(1, sizeof(node_t));
   if (node != NULL) {
     node->number_of_children = 0;
-    node->lex_val = (lex_val_t *)calloc(sizeof(lex_val_t), 0);
-    if (node->lex_val != NULL) {
-      node->lex_val->line_number = val->line_number;
-      node->lex_val->tk_type = val->tk_type;
-      node->lex_val->tk_value = strdup(val->tk_value);
+    if (val != NULL) {
+      node->lex_val = (lex_val_t *)calloc(1, sizeof(lex_val_t));
+      if (node->lex_val != NULL) {
+        node->lex_val->line_number = val->line_number;
+        node->lex_val->tk_type = val->tk_type;
+        node->lex_val->tk_value = strdup(val->tk_value);
+        update_label(node, node->lex_val->tk_value);
+      }
     }
   }
   return node;
@@ -39,7 +42,7 @@ node_t *create_node(const lex_val_t *val) {
 
 void update_label(node_t *node, char *name) {
   if (node != NULL) {
-    node->label = realloc(node->label, (strlen(name) + 1) * sizeof(char));
+    node->label = calloc(1, (strlen(name) + 1) * sizeof(char));
     if (node->label != NULL) {
       node->label = strdup(name);
     }

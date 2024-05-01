@@ -47,7 +47,7 @@ false	{ yylval.node = create_node(create_lex_val(get_line_number(),LIT,strdup(yy
 "=="	{yylval.node = create_node(NULL);return TK_OC_EQ;}
 "!="	{yylval.node = create_node(NULL);return TK_OC_NE;}
 "&"		{yylval.node = create_node(NULL);return TK_OC_AND;}
-"|"		{yylval.node = create_node(NULL);return TK_OC_OR;}
+"|"		{yylval.node = create_node(NULL);return TK_OC_OR;} 
 
 
  /*returns the ascii char as a number */
