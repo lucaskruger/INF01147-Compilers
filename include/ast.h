@@ -11,7 +11,7 @@ typedef struct lexical_value {
   tk_t tk_type;
   char *tk_value;
 } lex_val_t;
-// TODO: node will probably need a label value outside of lex_val_y
+
 typedef struct asl_node_type {
   lex_val_t *lex_val;
   char *label;

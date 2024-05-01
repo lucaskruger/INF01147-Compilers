@@ -39,9 +39,8 @@ node_t *create_node(const lex_val_t *val) {
 
 void update_label(node_t *node, char *name) {
   if (node != NULL) {
-    node->lex_val->tk_value =
-        realloc(node->lex_val->tk_value, (strlen(name) + 1) * sizeof(char));
-    if (node->lex_val->tk_value != NULL) {
+    node->label = realloc(node->label, (strlen(name) + 1) * sizeof(char));
+    if (node->label != NULL) {
       node->label = strdup(name);
     }
   } else {
@@ -68,7 +67,9 @@ void free_node(node_t *node) {
       free_node(node->children[i]);
     }
     free(node->children);
-    free(node->lex_val); // TODO: make is so it frees the whole struct
+    free(node->label);
+    free(node->lex_val->tk_value);
+    free(node->lex_val);
     free(node);
   } else {
     fprintf(stderr, "Error: %s got parameters = %p", __FUNCTION__, node);
@@ -101,8 +102,7 @@ void print_tree(node_t *node) {
 static void _exporta(FILE *foutput, node_t *node) {
   int i;
   if (node != NULL) {
-    fprintf(foutput, "  %ld [ label=\"%s\" ];\n", (long)node,
-            node->lex_val->tk_value);
+    fprintf(foutput, "  %ld [ label=\"%s\" ];\n", (long)node, node->label);
     for (i = 0; i < node->number_of_children; i++) {
       fprintf(foutput, "  %ld -> %ld;\n", (long)node, (long)node->children[i]);
       _exporta(foutput, node->children[i]);

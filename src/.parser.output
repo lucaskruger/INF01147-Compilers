@@ -155,7 +155,7 @@ Nonterminals, with rules where they appear
     header <filler> (41)
         on left: 6 7
         on right: 5
-    par_list (42)
+    par_list <node> (42)
         on left: 8 9
         on right: 6 8
     arg_list <node> (43)
