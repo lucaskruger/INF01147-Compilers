@@ -22,40 +22,41 @@ DIGIT	[0-9]
 int 	{return TK_PR_INT;}
 float 	{return TK_PR_FLOAT;}
 bool 	{return TK_PR_BOOL;}
-if 	{return TK_PR_IF;}
-else 	{return TK_PR_ELSE;}
-while 	{return TK_PR_WHILE;}
-return 	{return TK_PR_RETURN;}
+if 	{ yylval.node = create_node(NULL); return TK_PR_IF;}
+else 	{ yylval.node = create_node(NULL); return TK_PR_ELSE;}
+while 	{ yylval.node = create_node(NULL); return TK_PR_WHILE;}
+return 	{ yylval.node = create_node(NULL); return TK_PR_RETURN;}
 
 
  /*int and flat numbers */  
 
-{DIGIT}+	{ return TK_LIT_INT;}
-{DIGIT}*\.{DIGIT}+	{return TK_LIT_FLOAT;}
+{DIGIT}+	{ yylval.node = create_node(create_lex_val(get_line_number(),LIT,strdup(yytext))); return TK_LIT_INT;}
+{DIGIT}*\.{DIGIT}+	{ yylval.node = create_node(create_lex_val(get_line_number(),LIT,strdup(yytext))); return TK_LIT_FLOAT;}
 
 
  /* booleans */
 
-true	{return TK_LIT_TRUE;}
-false	{return TK_LIT_FALSE;}
+true	{ yylval.node = create_node(create_lex_val(get_line_number(),LIT,strdup(yytext))); return TK_LIT_TRUE;}
+false	{ yylval.node = create_node(create_lex_val(get_line_number(),LIT,strdup(yytext))); return TK_LIT_FALSE;}
 
 
  /*binary operators */  
 
-"<="	{return TK_OC_LE;}
-">="	{return TK_OC_GE;}
-"=="	{return TK_OC_EQ;}
-"!="	{return TK_OC_NE;}
-"&"		{return TK_OC_AND;}
-"|"		{return TK_OC_OR;}
+"<="	{yylval.node = create_node(NULL);return TK_OC_LE;}
+">="	{yylval.node = create_node(NULL);return TK_OC_GE;}
+"=="	{yylval.node = create_node(NULL);return TK_OC_EQ;}
+"!="	{yylval.node = create_node(NULL);return TK_OC_NE;}
+"&"		{yylval.node = create_node(NULL);return TK_OC_AND;}
+"|"		{yylval.node = create_node(NULL);return TK_OC_OR;}
 
 
- /*returns the charact's asci number */
+ /*returns the ascii char as a number */
 
-[-!*/%+<>{}()=,;]	{return (int)yytext[0];}
-(_|{LETTER})(_|{LETTER}|{DIGIT})*	{yylval.node = create_node(create_lex_val(1,ID,strdup(yytext))); return TK_IDENTIFICADOR;} 
+[-!*/%+<>=]	{ yylval.node = create_node(NULL); return (int)yytext[0];}
+[{}(),;] { return (int)yytext[0];}
+(_|{LETTER})(_|{LETTER}|{DIGIT})*  { yylval.node = create_node(create_lex_val(get_line_number(),ID,strdup(yytext))); return TK_IDENTIFICADOR;}
+
 "//"(.)*\n	
-
 
  /*different rules for entering multiline comment mode */
 

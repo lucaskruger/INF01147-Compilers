@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define OUTPUT_FILE "output"
+#define OUTPUT_FILE "ast.txt"
+// TODO: check if label and tk_value need to be kept in different registers
 
 lex_val_t *create_lex_val(int line, tk_t type, char *value) {
   lex_val_t *lex_val = NULL;
@@ -10,7 +11,10 @@ lex_val_t *create_lex_val(int line, tk_t type, char *value) {
   if (lex_val != NULL) {
     lex_val->line_number = line;
     lex_val->tk_type = type;
-    lex_val->tk_value = value;
+    if (value != NULL) {
+      lex_val->tk_value = calloc(1, (strlen(value) + 1) * sizeof(char));
+    }
+    lex_val->tk_value = strdup(value);
   } else {
     fprintf(stderr, "Error: %s got parameters = %d/ %u / %s", __FUNCTION__,
             line, type, value);
@@ -22,13 +26,28 @@ node_t *create_node(const lex_val_t *val) {
   node_t *node = NULL;
   node = calloc(1, sizeof(node_t));
   if (node != NULL) {
+    node->number_of_children = 0;
     node->lex_val = (lex_val_t *)calloc(sizeof(lex_val_t), 0);
     if (node->lex_val != NULL) {
+      node->lex_val->line_number = val->line_number;
+      node->lex_val->tk_type = val->tk_type;
       node->lex_val->tk_value = strdup(val->tk_value);
     }
   }
-  // TODO: node_t.type needed?
   return node;
+}
+
+void update_label(node_t *node, char *name) {
+  if (node != NULL) {
+    node->lex_val->tk_value =
+        realloc(node->lex_val->tk_value, (strlen(name) + 1) * sizeof(char));
+    if (node->lex_val->tk_value != NULL) {
+      node->label = strdup(name);
+    }
+  } else {
+    fprintf(stderr, "Error: %s got parameters = %p/ %s", __FUNCTION__, node,
+            name);
+  }
 }
 
 void add_child(node_t *par, node_t *child) {

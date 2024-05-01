@@ -14,6 +14,3 @@ tar:
 
 test: 
 	make -C ./tests
-
-display:
-	make -C ./tests display

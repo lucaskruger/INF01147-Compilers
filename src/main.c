@@ -6,6 +6,7 @@ void exporta(void *arvore);
 
 int main(int argc, char **argv) {
   int ret = yyparse();
+  printf("yyparser worked /n");
   exporta(arvore);
   yylex_destroy();
   return ret;
