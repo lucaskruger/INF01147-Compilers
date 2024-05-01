@@ -21,7 +21,7 @@ void yylex_destroy();
 
 %type<node> program comm_block comm_lst comm var_decl id_list global_var attrib_comm exp ret_comm flux_ctrl
 %type<node> or_exp un_exp sum_exp and_exp comp_exp mult_exp eq_exp 
-%type<node> func func_call arg_list
+%type<node> func func_call arg_list par_list
 %type<node> lit operand
 %type<node> '=''<''>''+''-''*''/''%''!'
 %type<filler> type header 
@@ -67,8 +67,8 @@ header:           '(' par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR
                 | '(' ')' TK_OC_OR type '/' TK_IDENTIFICADOR
                 ;
 
-par_list:         par_list ';' type TK_IDENTIFICADOR 
-                | type TK_IDENTIFICADOR 
+par_list:         par_list ';' type TK_IDENTIFICADOR {add_child($1,$4); $$ = $1;}
+                | type TK_IDENTIFICADOR { $$ = $2;}
                 ;
 
 arg_list:         exp
@@ -162,8 +162,8 @@ operand:           TK_IDENTIFICADOR{$$ = $1;}
 
 // Misc: Types, Literals and Identifiers
 
-id_list:          TK_IDENTIFICADOR {$$ = $1;}
-                | id_list ';' TK_IDENTIFICADOR {add_child($1, $3); $$ = $1;}
+id_list:          TK_IDENTIFICADOR {update_label($1,$1->lex_val->tk_value); $$ = $1;}
+                | id_list ';' TK_IDENTIFICADOR {update_label($3,$3->lex_val->tk_value); add_child($1, $3); $$ = $1;}
                 ;
 
 lit:              TK_LIT_INT{$$ = $1;}
