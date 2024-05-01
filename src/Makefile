@@ -2,7 +2,7 @@ RELEASE = etapa3
 
 IDIR =../include
 CC=gcc
-CFLAGS=-I$(IDIR)
+CFLAGS=-I$(IDIR) -g
 
 ODIR=obj
 LDIR =../lib
