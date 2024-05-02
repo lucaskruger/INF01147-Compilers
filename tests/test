@@ -15,10 +15,13 @@ while(1){},}
 //CORRECT test 146
 () | int / main {
   int x,
+  bool a; b; c,
   x = ---x,
+  a = b & c,
+  v = c | b,
 }
 //CORRECT test 147 
 () | int / main {
-  int x,
-  x = !!!!x,
-}
+   int x,
+   x = !!!!x,
+ }
