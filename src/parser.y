@@ -5,6 +5,8 @@
 %{
 #include "../include/ast.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 int yylex(void);
 extern int get_line_number();
@@ -60,10 +62,10 @@ global_var:       var_decl ',' {$$ = $1;}
                 ;
                 // 3.2 Function definition
 
-func:             header comm_block {if($2 != NULL) add_child($1, $2); $$ = $1;}
+func:             header comm_block { add_child($1, $2); $$ = $1;}
                 ;
 
-header:           '(' par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR {add_child($7,$2); $$ = $7;}
+header:           '(' par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR {add_child($7,$2); update_label($7,$7->lex_val->tk_value); $$ = $7;}
                 | '(' ')' TK_OC_OR type '/' TK_IDENTIFICADOR {$$ = $5;}
                 ;
 
@@ -98,19 +100,19 @@ comm:             comm_block {$$ = $1;}
                 | flux_ctrl{$$ = $1;} 
                 ;
 
-var_decl:         type id_list {$$ = $2;}
+var_decl:         type id_list {$$ = $2;}//val_decl should not be on the ast
                 ;
 
 attrib_comm:      TK_IDENTIFICADOR '=' exp	{add_child($2,$1); add_child($2,$3);update_label($2,"="); $$ = $2;}
                 ;
 
-func_call:        TK_IDENTIFICADOR '(' arg_list ')' {add_child($1,$3);update_label($1,"call"); $$ = $1;} 
+func_call:        TK_IDENTIFICADOR '(' arg_list ')' {add_child($1,$3);/* char *s = calloc(1,sizeof(char) * (strlen($1->lex_val->tk_value) + 6));s = "call"; strcpy(s,$1->lex_val->tk_value)*/; update_label($1,"call"); $$ = $1;} 
                 | TK_IDENTIFICADOR '(' ')' { $$ = $1;}
                 ;
 
-flux_ctrl:        TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block {add_child($1,$3); add_child($1,$6); add_child($1,$7);update_label($1,"if");; $$ = $1;}
-                | TK_PR_IF '(' exp ')' comm_block {add_child($1,$3); add_child($1,$5);update_label($1,"if"); $$ = $1;}
-                | TK_PR_WHILE '(' exp ')' comm_block {add_child($1,$3); add_child($1,$5); $$ = $1;}
+flux_ctrl:        TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block {add_child($1,$3); if($5 != NULL) add_child($1,$5);if($7 != NULL) add_child($1,$7);update_label($1,"if");; $$ = $1;}
+                | TK_PR_IF '(' exp ')' comm_block {add_child($1,$3);if($5 != NULL) add_child($1,$5);update_label($1,"if"); $$ = $1;}
+                | TK_PR_WHILE '(' exp ')' comm_block {add_child($1,$3);if($5 != NULL) add_child($1,$5); update_label($1,"while"); $$ = $1;}
                 ;
 
 // 3.5 Expressions
@@ -118,11 +120,11 @@ flux_ctrl:        TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block {add_chi
 exp:              or_exp {$$ = $1;}
                 ;
 
-or_exp:           or_exp TK_OC_OR and_exp {add_child($2,$1); add_child($2,$3); $$ = $2;}
+or_exp:           or_exp TK_OC_OR and_exp {add_child($2,$1); add_child($2,$3);update_label($2,"|"); $$ = $2;}
                 | and_exp{$$ = $1;}
                 ;
 
-and_exp:          and_exp TK_OC_AND eq_exp{add_child($2,$1); add_child($2,$3); $$ = $2;}
+and_exp:          and_exp TK_OC_AND eq_exp{add_child($2,$1); add_child($2,$3);update_label($2,"&"); $$ = $2;}
                 | eq_exp{$$ = $1;}
                 ;
 
