@@ -106,7 +106,7 @@ var_decl:         type id_list {$$ = $2;}//var_decl should not be on the ast
 attrib_comm:      TK_IDENTIFICADOR '=' exp	{add_child($2,$1); add_child($2,$3);update_label($2,"="); $$ = $2;}
                 ;
 
-func_call:        TK_IDENTIFICADOR '(' arg_list ')' {add_child($1,$3);
+func_call:        TK_IDENTIFICADOR '(' arg_list ')' { add_child($1,$3);
                                                     char *funcName = calloc(1,sizeof(char) * (strlen($1->lex_val->tk_value) + 5 * sizeof(char)));
                                                     strcpy(funcName, "call ");
                                                     strcat(funcName, $1->lex_val->tk_value);
