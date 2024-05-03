@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define OUTPUT_FILE "ast.txt"
+#define OUTPUT_FILE "ast.dot"
 // TODO: check if label and tk_value need to be kept in different registers
 
 lex_val_t *create_lex_val(int line, tk_t type, char *value) {
@@ -59,7 +59,7 @@ void add_child(node_t *par, node_t *child) {
         realloc(par->children, par->number_of_children * sizeof(node_t *));
     par->children[par->number_of_children - 1] = child;
   } else {
-    fprintf(stderr, "Error: %s got parameters = %p / %p. \n", __FUNCTION__, par,
+    fprintf(stderr, "Error: %s got parameters = %p / %p.\n", __FUNCTION__, par,
             child);
   }
 }
@@ -122,7 +122,7 @@ extern void exporta(void *node) {
            __FUNCTION__, OUTPUT_FILE);
   }
   if (node != NULL) {
-    fprintf(foutput, "AST NODES {\n");
+    fprintf(foutput, "digraph grafo {\n");
     _exporta(foutput, node);
     fprintf(foutput, "}\n");
     fclose(foutput);
