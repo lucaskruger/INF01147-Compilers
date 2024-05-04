@@ -13,6 +13,7 @@ extern int get_line_number();
 extern void *arvore;
 void yyerror (char const *mensagem);
 void yylex_destroy();
+node_s *head = NULL;
 %}
 
 %union{
@@ -65,11 +66,11 @@ global_var:       var_decl ',' {$$ = $1;}
 func:             header comm_block {add_child($1, $2); $$ = $1;}
                 ;
 
-header:           '(' par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR {add_child($7,$2); update_label($7,$7->lex_val->tk_value); $$ = $7;}
+header:           '(' par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR {update_label($7,$7->lex_val->tk_value); $$ = $7;}
                 | '(' ')' TK_OC_OR type '/' TK_IDENTIFICADOR {$$ = $5;}
                 ;
 
-par_list:         par_list ';' type TK_IDENTIFICADOR {add_child($1,$4); $$ = $1;}
+par_list:         par_list ';' type TK_IDENTIFICADOR {$$=$4;}
                 | type TK_IDENTIFICADOR {$$ = $2;}
                 ;
 
@@ -77,7 +78,7 @@ arg_list:         exp {$$ = $1;}
                 | arg_list ';' exp {add_child($1, $3); $$ = $1;}
                 ;
 
-ret_comm:         TK_PR_RETURN exp {add_child($1,$2); update_label($1,"return"); $$ = $1;} 
+ret_comm:         TK_PR_RETURN exp {update_label($1,"return"); add_child($1,$2); $$ = $1;} 
                 ;
 
 // 3.3 Command Block
@@ -86,8 +87,8 @@ comm_block:       '{' '}' {$$ = NULL;}//func can have only one child if it is em
                 | '{' comm_lst '}' {$$ = $2;}
                 ;
 
-comm_lst:         comm ','{$$ = $1;}
-                | comm_lst  comm ','{add_child($1, $2); $$ = $1;}
+comm_lst:         comm ','{$$ = $1; push(&head, $1);}
+                | comm_lst  comm ','{add_child(pop(&head), $2); push(&head, $2); $$ = $1;}
                 ;
 
 // 3.4 Simple Command 
@@ -103,20 +104,48 @@ comm:             comm_block {$$ = $1;}
 var_decl:         type id_list {$$ = $2;}//var_decl should not be on the ast
                 ;
 
-attrib_comm:      TK_IDENTIFICADOR '=' exp	{add_child($2,$1); add_child($2,$3);update_label($2,"="); $$ = $2;}
+attrib_comm:      TK_IDENTIFICADOR '=' exp	{update_label($2,"=");add_child($2,$1); add_child($2,$3); $$ = $2;}
                 ;
 
-func_call:        TK_IDENTIFICADOR '(' arg_list ')' { add_child($1,$3);
+func_call:        TK_IDENTIFICADOR '(' arg_list ')' {add_child($1,$3);
                                                     char *funcName = calloc(1,sizeof(char) * (strlen($1->lex_val->tk_value) + 5 * sizeof(char)));
                                                     strcpy(funcName, "call ");
                                                     strcat(funcName, $1->lex_val->tk_value);
-                                                    update_label($1,funcName); $$ = $1;} 
+                                                    update_label($1,funcName);
+                                                    $$ = $1;} 
                 | TK_IDENTIFICADOR '(' ')' {$$ = $1;}
                 ;
 
-flux_ctrl:        TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block {add_child($1,$3); if($5 != NULL) add_child($1,$5);if($7 != NULL) add_child($1,$7);update_label($1,"if");; $$ = $1;}
-                | TK_PR_IF '(' exp ')' comm_block {add_child($1,$3);if($5 != NULL) add_child($1,$5);update_label($1,"if"); $$ = $1;}
-                | TK_PR_WHILE '(' exp ')' comm_block {add_child($1,$3);if($5 != NULL) add_child($1,$5); update_label($1,"while"); $$ = $1;}
+flux_ctrl:        TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block {
+                  update_label($1,"if");
+                  add_child($1,$3);
+                  if($5 != NULL) {
+                    add_child($1,$5);
+                    pop(&head);
+                  }
+                  if($7 != NULL) {
+                    add_child($1,$7);
+                    pop(&head);
+                  }
+                  $$ = $1; printf("A");
+                  }
+                | TK_PR_IF '(' exp ')' comm_block {
+                  update_label($1,"if");
+                  add_child($1,$3);
+                  if($5 != NULL) {
+                    add_child($1,$5);
+                    pop(&head);
+                  };
+                  $$ = $1;
+                  }
+                | TK_PR_WHILE '(' exp ')' comm_block {
+                  update_label($1,"while");
+                  add_child($1,$3);
+                  if($5 != NULL) {
+                    add_child($1,$5);
+                    pop(&head);
+                  };
+                  $$ = $1;}
                 ;
 
 // 3.5 Expressions
@@ -124,39 +153,39 @@ flux_ctrl:        TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block {add_chi
 exp:              or_exp {$$ = $1;}
                 ;
 
-or_exp:           or_exp TK_OC_OR and_exp {add_child($2,$1); add_child($2,$3);update_label($2,"|"); $$ = $2;}
+or_exp:           or_exp TK_OC_OR and_exp {update_label($2,"|");add_child($2,$1); add_child($2,$3); $$ = $2;}
                 | and_exp{$$ = $1;}
                 ;
 
-and_exp:          and_exp TK_OC_AND eq_exp{add_child($2,$1); add_child($2,$3);update_label($2,"&"); $$ = $2;}
+and_exp:          and_exp TK_OC_AND eq_exp{update_label($2,"&");add_child($2,$1); add_child($2,$3); $$ = $2;}
                 | eq_exp{$$ = $1;}
                 ;
 
-eq_exp:           eq_exp TK_OC_EQ comp_exp{add_child($2,$1); add_child($2,$3); $$ = $2;}
-                | eq_exp TK_OC_NE comp_exp{add_child($2,$1); add_child($2,$3); $$ = $2;}
+eq_exp:           eq_exp TK_OC_EQ comp_exp{update_label($2,"==");add_child($2,$1); add_child($2,$3); $$ = $2;}
+                | eq_exp TK_OC_NE comp_exp{update_label($2,"!=");add_child($2,$1); add_child($2,$3); $$ = $2;}
                 | comp_exp{$$ = $1;}
                 ;
 
-comp_exp:         comp_exp '<' sum_exp{add_child($2,$1); add_child($2,$3); $$ = $2;}
-                | comp_exp '>' sum_exp{add_child($2,$1); add_child($2,$3); $$ = $2;}
-                | comp_exp TK_OC_LE sum_exp{add_child($2,$1); add_child($2,$3); $$ = $2;}
-                | comp_exp TK_OC_GE sum_exp{add_child($2,$1); add_child($2,$3); $$ = $2;}
+comp_exp:         comp_exp '<' sum_exp{update_label($2,"<");add_child($2,$1); add_child($2,$3); $$ = $2;}
+                | comp_exp '>' sum_exp{update_label($2,">");add_child($2,$1); add_child($2,$3); $$ = $2;}
+                | comp_exp TK_OC_LE sum_exp{update_label($2,"<=");add_child($2,$1); add_child($2,$3); $$ = $2;}
+                | comp_exp TK_OC_GE sum_exp{update_label($2,">=");add_child($2,$1); add_child($2,$3); $$ = $2;}
                 | sum_exp{$$ = $1;}
                 ;
 
-sum_exp:          sum_exp '+' mult_exp{add_child($2,$1); add_child($2,$3); $$ = $2;}
-                | sum_exp '-' mult_exp{add_child($2,$1); add_child($2,$3); $$ = $2;}
+sum_exp:          sum_exp '+' mult_exp{update_label($2,"+");add_child($2,$1); add_child($2,$3); $$ = $2;}
+                | sum_exp '-' mult_exp{update_label($2,"-");add_child($2,$1); add_child($2,$3); $$ = $2;}
                 | mult_exp{$$ = $1;}
                 ;
 
-mult_exp:         mult_exp '*' un_exp{add_child($2,$1); add_child($2,$3); $$ = $2;}
-                | mult_exp '/' un_exp{add_child($2,$1); add_child($2,$3); $$ = $2;}
-                | mult_exp '%' un_exp{add_child($2,$1); add_child($2,$3); $$ = $2;}
+mult_exp:         mult_exp '*' un_exp{update_label($2,"*");add_child($2,$1); add_child($2,$3); $$ = $2;}
+                | mult_exp '/' un_exp{update_label($2,"/");add_child($2,$1); add_child($2,$3); $$ = $2;}
+                | mult_exp '%' un_exp{update_label($2,"%");add_child($2,$1); add_child($2,$3); $$ = $2;}
                 | un_exp{$$ = $1;}
                 ;
 
-un_exp:           '-' un_exp{add_child($1, $2);update_label($1,"-"); $$ = $1;}
-                | '!' un_exp{add_child($1, $2);update_label($1,"!"); $$ = $1;}
+un_exp:           '-' un_exp{update_label($1,"-");add_child($1, $2); $$ = $1;}
+                | '!' un_exp{update_label($1,"!");add_child($1, $2); $$ = $1;}
                 | operand{$$ = $1;}
                 ;
 

@@ -58,6 +58,7 @@ void add_child(node_t *par, node_t *child) {
     par->children =
         realloc(par->children, par->number_of_children * sizeof(node_t *));
     par->children[par->number_of_children - 1] = child;
+
   } else {
     fprintf(stderr, "Error: %s got parameters = %p / %p.\n", __FUNCTION__, par,
             child);
@@ -129,4 +130,46 @@ extern void exporta(void *node) {
   } else {
     printf("Erro: %s recebeu parâmetro node = %p.\n", __FUNCTION__, node);
   }
+}
+
+node_t *pop(node_s **head){
+  if (head == NULL || *head == NULL) {
+    printf("Erro: Pilha já está vazia.\n");
+    return NULL; // Return NULL if there's nothing to pop
+  }
+
+  node_s *top_node = *head;
+  node_t *data = top_node->node_data;
+
+  *head = top_node->prev_node;
+  free(top_node);
+
+  return data;
+}
+
+void push(node_s **head, node_t *new_node){
+
+  // Allocate space for the new node
+  node_s *stack_entry = calloc(1, sizeof(node_s));
+  if(stack_entry == NULL) {
+    printf("Erro: falha ao alocar espaço para a pilha de nodes\n");
+  }
+
+  stack_entry->prev_node = *head; // Point to the previos node in the stack
+  stack_entry->node_data = new_node; // Point to the node
+  *head = stack_entry; // Change head so it points to the newly created entry
+}
+
+// Print stack for debugging purposes
+void print_stack(node_s *head) {
+    node_s *current = head;
+    printf("Stack contents:\n");
+    while (current != NULL) {
+        if (current->node_data != NULL) {
+            printf("\tstack: %s\n", current->node_data->label);
+        } else {
+            printf("NULL\n");
+        }
+        current = current->prev_node;
+    }
 }
