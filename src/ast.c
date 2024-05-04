@@ -60,8 +60,8 @@ void add_child(node_t *par, node_t *child) {
     par->children[par->number_of_children - 1] = child;
 
   } else {
-    fprintf(stderr, "Error: %s got parameters = %p / %p.\n", __FUNCTION__, par,
-            child);
+    fprintf(stderr, "Error: %s got parameters = %s / %p.\n", __FUNCTION__,
+            par->label, child);
   }
 }
 
@@ -103,13 +103,13 @@ void print_tree(node_t *node) {
   }
 }
 
-static void _exporta(FILE *foutput, node_t *node) {
+static void _exporta(node_t *node) {
   int i;
   if (node != NULL) {
-    fprintf(foutput, "  %ld [ label=\"%s\" ];\n", (long)node, node->label);
+    printf("  %ld [ label=\"%s\" ];\n", (long)node, node->label);
     for (i = 0; i < node->number_of_children; i++) {
-      fprintf(foutput, "  %ld -> %ld;\n", (long)node, (long)node->children[i]);
-      _exporta(foutput, node->children[i]);
+      printf("  %ld -> %ld;\n", (long)node, (long)node->children[i]);
+      _exporta(node->children[i]);
     }
   } else {
     printf("Erro: %s recebeu parâmetro node = %p.\n", __FUNCTION__, node);
@@ -117,20 +117,15 @@ static void _exporta(FILE *foutput, node_t *node) {
 }
 
 extern void exporta(void *node) {
-  FILE *foutput = fopen(OUTPUT_FILE, "w+");
-  if (foutput == NULL) {
-    printf("Erro: %s não pude abrir o arquivo [%s] para escrita.\n",
-           __FUNCTION__, OUTPUT_FILE);
-  }
   if (node != NULL) {
-    fprintf(foutput, "digraph grafo {\n");
-    _exporta(foutput, node);
-    fprintf(foutput, "}\n");
-    fclose(foutput);
+    printf("AST{\n");
+    _exporta(node);
+    printf("}\n");
   } else {
     printf("Erro: %s recebeu parâmetro node = %p.\n", __FUNCTION__, node);
   }
 }
+
 
 node_t *pop(node_s **head){
   if (head == NULL || *head == NULL) {
