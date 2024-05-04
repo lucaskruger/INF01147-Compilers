@@ -18,6 +18,7 @@ while(1){},
 
 // closing the comm_block } by it's self in another line doesn't work
 //CORRECT test 146
+int q; w; p ,
 () | int / main {
   int main_int_x,
   bool main_bool_a; main_bool_b; main_bool_c,

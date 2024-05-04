@@ -54,8 +54,12 @@ void yylex_destroy();
 
 program:          {$$ = NULL;}/* empty */
                 | global_var program{
-                    $$ = NULL;
+                    if($2 != NULL){
+                      $$ = $2;
+                    }else {
+                      $$ = NULL;
                     }
+                  }
 
                 | func program{
                     if($2 != NULL)
@@ -130,21 +134,21 @@ comm_block:       '{' '}' {
                     }
                 ;
 
-comm_lst:         comm ','{
-                    $$ = $1;
+comm_lst:          {
+                    $$ = NULL;
                     }
 
-               | comm_lst comm ',' {//FIX:sorry was in a hurry
-                    if($1 == NULL){//  and forgot how to c
-                      if($2 == NULL){
+               |  comm ',' comm_lst{// one conflict 
+                    if($1 == NULL){//FIX: oof
+                      if($3 == NULL){
                         $$ = NULL;
                       }else
-                        $$ = $2;
+                        $$ = $3;
                     }else {
-                      if($2 == NULL){
+                      if($3 == NULL){
                         $$ = $1;
                       }else{
-                      add_child($1, $2);
+                      add_child($1, $3);
                       }
                     }
                   }
@@ -157,7 +161,7 @@ comm:             comm_block {
                     } 
 
                 | var_decl {
-                    $$ = NULL;
+                     $$ = NULL;
                     }
 
                 | attrib_comm	{
