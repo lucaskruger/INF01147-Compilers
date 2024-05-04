@@ -1,10 +1,10 @@
 RELEASE = etapa3
 
-all: ../$(RELEASE) test
-	../$(RELEASE) < test 
-	./output2dot.sh < ast.txt > ast.dot
+all: ../$(RELEASE) test saida
+	../$(RELEASE) < test > saida
+	./output2dot.sh < saida > ast.dot
 	dot -Tpng -Gbgcolor="#282828" -Nfontcolor=white -Ncolor=white -Ecolor=white ast.dot -o ast.png
-	kitten icat ast.png
+	kitty + kitten icat ast.png
 
 clean:
-	rm ast.txt ast.dot ast.png
+	rm ast.dot ast.png

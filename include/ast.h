@@ -4,6 +4,8 @@
 #ifndef AST_H
 #define AST_H
 
+#include<stdio.h>
+
 typedef enum token_type { ID, LIT } tk_t;
 
 typedef struct lexical_value {

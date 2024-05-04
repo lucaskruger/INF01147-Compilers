@@ -2,17 +2,23 @@ int int_a ; int_e,
 float float_b; float_c ,
 bool bool_f ; bool_d ,
 
-(int par_int_a ; bool par_int_b ; int par_int_b ; int par_int_c ; int par_int_d ; int par_int_e ; int par_int_f) | int / foo {
+(int par_int_a ; bool par_int_b ;  int par_int_d) | int / foo {
 float _myfloat, 
 _myfloat = .3 , 
-foo (2 ; 3),	 
+foo (2 ; 3),
 return 1 , 
 
-if ( 3 + 2){}else{},
-while(1){},}
+if ( 2 + 3 ){
+a = 2 * 3 / 4,
+b = e3 % _myterswd,
+c = d - 3,
+  }else{},
+while(1){},
+  }
 
 // closing the comm_block } by it's self in another line doesn't work
 //CORRECT test 146
+int q; w; p ,
 () | int / main {
   int main_int_x,
   bool main_bool_a; main_bool_b; main_bool_c,
