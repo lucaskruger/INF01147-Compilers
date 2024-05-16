@@ -150,7 +150,7 @@ void push(node_s **head, node_t *new_node){
     printf("Erro: falha ao alocar espaço para a pilha de nodes\n");
   }
 
-  stack_entry->prev_node = *head; // Point to the previos node in the stack
+  stack_entry->prev_node = *head; // Point to the previous node in the stack
   stack_entry->node_data = new_node; // Point to the node
   *head = stack_entry; // Change head so it points to the newly created entry
 }
