@@ -137,7 +137,9 @@ comm_block:       '{' '}' {
 
 comm_lst:       comm ',' {
                   $$ = $1;
-                  //push(&head, $1);
+                  if($1 != NULL){
+                    push(&head, $1);
+                  }
                   }
 
                   //comm ',' comm_lst
@@ -150,11 +152,12 @@ comm_lst:       comm ',' {
                     }else {
                       if($1 == NULL){
                         $$ = $2;
+                        push(&head, $2);
                       }else{
-                      //add_child(pop(&head), $2);
-                      add_child($1, $2);
-                      push(&head, $2);
-                      $$ = $1;
+                        add_child(pop(&head), $2);
+                        //add_child($1, $2);
+                        push(&head, $2);
+                        $$ = $1;
                       }
                     }
                   }
