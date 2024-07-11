@@ -364,7 +364,7 @@ mult_exp:         mult_exp '*' un_exp{
                 | mult_exp '%' un_exp{
                     add_child($2,$1);
                     add_child($2,$3);
-                    update_label($2,"/");
+                    update_label($2,"%");
                     $$ = $2;
                     }
 
