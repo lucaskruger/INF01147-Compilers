@@ -68,7 +68,6 @@ program:          {$$ = NULL;}/* empty */
                     $$ = $1;
                     arvore = (void*) $$;
                     }
-
                 ;
 
 // 3.1 Variable declaration
@@ -109,10 +108,12 @@ par_list:         par_list ';' type TK_IDENTIFICADOR {
                 ;
 
 arg_list:         exp{
+                    push(&head,$1);
                     $$ = $1;
                     }
                 | arg_list ';' exp {
-                    add_child($1, $3);
+                    add_child(pop(&head), $3);
+                    push(&head, $3);
                     $$ = $1;
                     }
                 ;
