@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #define OUTPUT_FILE "ast.dot"
-// TODO: check if label and tk_value need to be kept in different registers
 
 lex_val_t *create_lex_val(int line, tk_t type, char *value) {
   lex_val_t *lex_val = NULL;
@@ -16,8 +15,8 @@ lex_val_t *create_lex_val(int line, tk_t type, char *value) {
     }
     lex_val->tk_value = strdup(value);
   } else {
-    fprintf(stderr, "Error: %s got parameters = %d/ %u / %s", __FUNCTION__,
-            line, type, value);
+    // fprintf(stderr, "Error: %s got parameters = %d/ %u / %s",
+    // __FUNCTION__,line, type, value);
   }
   return lex_val;
 }
@@ -47,8 +46,8 @@ void update_label(node_t *node, char *name) {
       node->label = strdup(name);
     }
   } else {
-    fprintf(stderr, "Error: %s got parameters = %p/ %s", __FUNCTION__, node,
-            name);
+    // fprintf(stderr, "Error: %s got parameters = %p/ %s", __FUNCTION__,
+    // node,name);
   }
 }
 
@@ -60,8 +59,8 @@ void add_child(node_t *par, node_t *child) {
     par->children[par->number_of_children - 1] = child;
 
   } else {
-    fprintf(stderr, "Error: %s got parameters = %s / %p.\n", __FUNCTION__,
-            par->label, child);
+    // fprintf(stderr, "Error: %s got parameters = %s / %p.\n",
+    // __FUNCTION__,par->label, child);
   }
 }
 
@@ -76,7 +75,7 @@ void free_node(node_t *node) {
     free(node->lex_val);
     free(node);
   } else {
-    fprintf(stderr, "Error: %s got parameters = %p", __FUNCTION__, node);
+    // fprintf(stderr, "Error: %s got parameters = %p", __FUNCTION__, node);
   }
 }
 
@@ -90,7 +89,7 @@ static void _print_tree(FILE *foutput, node_t *node, int profundidade) {
       _print_tree(foutput, node->children[i], profundidade + 1);
     }
   } else {
-    printf("Erro: %s recebeu parâmetro node = %p.\n", __FUNCTION__, node);
+    // printf("Erro: %s recebeu parâmetro node = %p.\n", __FUNCTION__, node);
   }
 }
 
@@ -99,7 +98,7 @@ void print_tree(node_t *node) {
   if (node != NULL) {
     _print_tree(foutput, node, 0);
   } else {
-    printf("Erro: %s recebeu parâmetro node = %p.\n", __FUNCTION__, node);
+    // printf("Erro: %s recebeu parâmetro node = %p.\n", __FUNCTION__, node);
   }
 }
 
@@ -112,24 +111,23 @@ static void _exporta(node_t *node) {
       _exporta(node->children[i]);
     }
   } else {
-    printf("Erro: %s recebeu parâmetro node = %p.\n", __FUNCTION__, node);
+    // printf("Erro: %s recebeu parâmetro node = %p.\n", __FUNCTION__, node);
   }
 }
 
 extern void exporta(void *node) {
   if (node != NULL) {
-    printf("AST{\n");
+    // printf("AST{\n");
     _exporta(node);
-    printf("}\n");
+    // printf("}\n");
   } else {
-    printf("Erro: %s recebeu parâmetro node = %p.\n", __FUNCTION__, node);
+    // printf("Erro: %s recebeu parâmetro node = %p.\n", __FUNCTION__, node);
   }
 }
 
-
-node_t *pop(node_s **head){
+node_t *pop(node_s **head) {
   if (head == NULL || *head == NULL) {
-    printf("Erro: Pilha já está vazia.\n");
+    // printf("Erro: Pilha já está vazia.\n");
     return NULL; // Return NULL if there's nothing to pop
   }
 
@@ -142,29 +140,29 @@ node_t *pop(node_s **head){
   return data;
 }
 
-void push(node_s **head, node_t *new_node){
+void push(node_s **head, node_t *new_node) {
 
   // Allocate space for the new node
   node_s *stack_entry = calloc(1, sizeof(node_s));
-  if(stack_entry == NULL) {
-    printf("Erro: falha ao alocar espaço para a pilha de nodes\n");
+  if (stack_entry == NULL) {
+    // printf("Erro: falha ao alocar espaço para a pilha de nodes\n");
   }
 
-  stack_entry->prev_node = *head; // Point to the previous node in the stack
+  stack_entry->prev_node = *head;    // Point to the previous node in the stack
   stack_entry->node_data = new_node; // Point to the node
   *head = stack_entry; // Change head so it points to the newly created entry
 }
 
 // Print stack for debugging purposes
 void print_stack(node_s *head) {
-    node_s *current = head;
-    printf("Stack contents:\n");
-    while (current != NULL) {
-        if (current->node_data != NULL) {
-            printf("\tstack: %s\n", current->node_data->label);
-        } else {
-            printf("NULL\n");
-        }
-        current = current->prev_node;
+  node_s *current = head;
+  printf("Stack contents:\n");
+  while (current != NULL) {
+    if (current->node_data != NULL) {
+      printf("\tstack: %s\n", current->node_data->label);
+    } else {
+      printf("NULL\n");
     }
+    current = current->prev_node;
+  }
 }
