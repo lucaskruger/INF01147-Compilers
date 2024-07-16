@@ -125,7 +125,7 @@ extern void exporta(void *node) {
   }
 }
 
-node_t *pop(node_s **head) {
+node_t *node_stack_pop(node_s **head) {
   if (head == NULL || *head == NULL) {
     // printf("Erro: Pilha já está vazia.\n");
     return NULL; // Return NULL if there's nothing to pop
@@ -140,7 +140,7 @@ node_t *pop(node_s **head) {
   return data;
 }
 
-void push(node_s **head, node_t *new_node) {
+void node_stack_push(node_s **head, node_t *new_node) {
 
   // Allocate space for the new node
   node_s *stack_entry = calloc(1, sizeof(node_s));
@@ -154,7 +154,7 @@ void push(node_s **head, node_t *new_node) {
 }
 
 // Print stack for debugging purposes
-void print_stack(node_s *head) {
+void node_stack_print(node_s *head) {
   node_s *current = head;
   printf("Stack contents:\n");
   while (current != NULL) {

@@ -108,12 +108,12 @@ par_list:         par_list ';' type TK_IDENTIFICADOR {
                 ;
 
 arg_list:         exp{
-                    push(&head,$1);
+                    node_stack_push(&head,$1);
                     $$ = $1;
                     }
                 | arg_list ';' exp {
-                    add_child(pop(&head), $3);
-                    push(&head, $3);
+                    add_child(node_stack_pop(&head), $3);
+                    node_stack_push(&head, $3);
                     $$ = $1;
                     }
                 ;
@@ -139,7 +139,7 @@ comm_block:       '{' '}' {
 comm_lst:       comm ',' {
                   $$ = $1;
                   if($1 != NULL){
-                    push(&head, $1);
+                    node_stack_push(&head, $1);
                   }
                   }
 
@@ -153,11 +153,11 @@ comm_lst:       comm ',' {
                     }else {
                       if($1 == NULL){
                         $$ = $2;
-                        push(&head, $2);
+                        node_stack_push(&head, $2);
                       }else{
-                        add_child(pop(&head), $2);
+                        add_child(node_stack_pop(&head), $2);
                         //add_child($1, $2);
-                        push(&head, $2);
+                        node_stack_push(&head, $2);
                         $$ = $1;
                       }
                     }
@@ -223,11 +223,11 @@ flux_ctrl:        TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block {
                   add_child($1,$3);
                   if($5 != NULL) {
                     add_child($1,$5);
-                    pop(&head);
+                    node_stack_pop(&head);
                   }
                   if($7 != NULL) {
                     add_child($1,$7);
-                    pop(&head);
+                    node_stack_pop(&head);
                   }
                   $$ = $1;
                   }
@@ -236,7 +236,7 @@ flux_ctrl:        TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block {
                   add_child($1,$3);
                   if($5 != NULL) {
                     add_child($1,$5);
-                    pop(&head);
+                    node_stack_pop(&head);
                   };
                   $$ = $1;
                   }
@@ -245,7 +245,7 @@ flux_ctrl:        TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block {
                   add_child($1,$3);
                   if($5 != NULL) {
                     add_child($1,$5);
-                    pop(&head);
+                    node_stack_pop(&head);
                   };
                   $$ = $1;}
                 ;

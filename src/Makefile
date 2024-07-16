@@ -12,7 +12,7 @@ LIBS=-lm
 _DEPS = 
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = ast.o parser.tab.o lex.yy.o main.o  
+_OBJ = symbol_table.o ast.o parser.tab.o lex.yy.o main.o  
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(RELEASE): $(OBJ) 

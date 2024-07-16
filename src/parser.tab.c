@@ -1562,7 +1562,7 @@ yyreduce:
   case 11: /* arg_list: exp  */
 #line 110 "parser.y"
                      {
-                    push(&head,(yyvsp[0].node));
+                    node_stack_push(&head,(yyvsp[0].node));
                     (yyval.node) = (yyvsp[0].node);
                     }
 #line 1569 "parser.tab.c"
@@ -1571,8 +1571,8 @@ yyreduce:
   case 12: /* arg_list: arg_list ';' exp  */
 #line 114 "parser.y"
                                    {
-                    add_child(pop(&head), (yyvsp[0].node));
-                    push(&head, (yyvsp[0].node));
+                    add_child(node_stack_pop(&head), (yyvsp[0].node));
+                    node_stack_push(&head, (yyvsp[0].node));
                     (yyval.node) = (yyvsp[-2].node);
                     }
 #line 1579 "parser.tab.c"
@@ -1609,7 +1609,7 @@ yyreduce:
                          {
                   (yyval.node) = (yyvsp[-1].node);
                   if((yyvsp[-1].node) != NULL){
-                    push(&head, (yyvsp[-1].node));
+                    node_stack_push(&head, (yyvsp[-1].node));
                   }
                   }
 #line 1616 "parser.tab.c"
@@ -1626,11 +1626,11 @@ yyreduce:
                     }else {
                       if((yyvsp[-2].node) == NULL){
                         (yyval.node) = (yyvsp[-1].node);
-                        push(&head, (yyvsp[-1].node));
+                        node_stack_push(&head, (yyvsp[-1].node));
                       }else{
-                        add_child(pop(&head), (yyvsp[-1].node));
+                        add_child(node_stack_pop(&head), (yyvsp[-1].node));
                         //add_child($1, $2);
-                        push(&head, (yyvsp[-1].node));
+                        node_stack_push(&head, (yyvsp[-1].node));
                         (yyval.node) = (yyvsp[-2].node);
                       }
                     }
@@ -1733,11 +1733,11 @@ yyreduce:
                   add_child((yyvsp[-6].node),(yyvsp[-4].node));
                   if((yyvsp[-2].node) != NULL) {
                     add_child((yyvsp[-6].node),(yyvsp[-2].node));
-                    pop(&head);
+                    node_stack_pop(&head);
                   }
                   if((yyvsp[0].node) != NULL) {
                     add_child((yyvsp[-6].node),(yyvsp[0].node));
-                    pop(&head);
+                    node_stack_pop(&head);
                   }
                   (yyval.node) = (yyvsp[-6].node);
                   }
@@ -1751,7 +1751,7 @@ yyreduce:
                   add_child((yyvsp[-4].node),(yyvsp[-2].node));
                   if((yyvsp[0].node) != NULL) {
                     add_child((yyvsp[-4].node),(yyvsp[0].node));
-                    pop(&head);
+                    node_stack_pop(&head);
                   };
                   (yyval.node) = (yyvsp[-4].node);
                   }
@@ -1765,7 +1765,7 @@ yyreduce:
                   add_child((yyvsp[-4].node),(yyvsp[-2].node));
                   if((yyvsp[0].node) != NULL) {
                     add_child((yyvsp[-4].node),(yyvsp[0].node));
-                    pop(&head);
+                    node_stack_pop(&head);
                   };
                   (yyval.node) = (yyvsp[-4].node);}
 #line 1772 "parser.tab.c"
