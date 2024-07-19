@@ -24,7 +24,13 @@ void insert_symbol_table(symbol_table *table, symbol_table_entry new_entry){
         table->entry.line = new_entry.line;
         table->entry.nature = new_entry.nature;
         table->entry.data_type = new_entry.data_type;
-        table->entry.value = strdup(new_entry.value);
+        if(table->entry.value != NULL){
+            table->entry.value = strdup(new_entry.value);
+        }
+        else
+        {
+            table->entry.value = strdup("");
+        }
         table->next_entry = NULL;
 
         return;
@@ -43,7 +49,13 @@ void insert_symbol_table(symbol_table *table, symbol_table_entry new_entry){
         current->entry.line = new_entry.line;
         current->entry.nature = new_entry.nature;
         current->entry.data_type = new_entry.data_type;
-        current->entry.value = strdup(new_entry.value);
+        if(current->entry.value != NULL){
+            current->entry.value = strdup(new_entry.value);
+        }
+        else
+        {
+            current->entry.value = strdup("");
+        }
         current->next_entry = NULL;
     }
     
@@ -189,13 +201,13 @@ symbol_table *table_stack_peek(table_stack **stack){
 }
 
 // adds a new table to the stack
-void table_stack_push(table_stack **stack, symbol_table *table){
+void table_stack_push(table_stack **stack, symbol_table *new_table){
     table_stack *stack_entry = calloc(1, sizeof(table_stack));
     if (stack_entry == NULL) {
-        // printf("Erro: falha ao alocar espaço para a pilha de nodes\n");
+        return;
     }
 
-    stack_entry->table = table;         // enter table contents into entry
+    stack_entry->table = new_table;         // enter table contents into entry
     stack_entry->prev_table = *stack;   // define entry's previous table
     *stack = stack_entry;               // redefine top of stack as new entry
 
@@ -231,4 +243,27 @@ symbol_table *table_stack_base(table_stack **stack){
 
     symbol_table *base_table = base->table;
     return base_table;
+}
+
+// Finds and returns the first match of a key on a stack of tables, returns NULL if nothing is found
+symbol_table_entry *search_table_stack(table_stack **stack, char *key){
+    if(stack == NULL || *stack == NULL){
+        printf("Warning: Searched an invalid stack\n");
+        return NULL;    // return NULL if there's nothing in the stack
+    }
+
+    table_stack *current_element = *stack;
+
+    while(current_element != NULL){
+        symbol_table *current_table = current_element->table; // get table on top of the stack
+        symbol_table_entry *current_entry = search_symbol_table(current_table, key); // look for a matching entry in the current table
+
+        if(current_entry != NULL){
+            return current_entry;   // found a key match
+        }
+
+        current_element = current_element->prev_table;  // go to previous table in the stack
+    }
+
+    return NULL; // found no match
 }

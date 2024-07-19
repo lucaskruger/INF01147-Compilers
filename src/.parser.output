@@ -13,10 +13,10 @@ Grammar
 
     4 global_var: var_decl ','
 
-    5 func: header comm_block
+    5 func: header comm_block cleanup_table
 
-    6 header: '(' par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR
-    7       | '(' ')' TK_OC_OR type '/' TK_IDENTIFICADOR
+    6 header: '(' new_table par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR
+    7       | '(' new_table ')' TK_OC_OR type '/' TK_IDENTIFICADOR
 
     8 par_list: par_list ';' type TK_IDENTIFICADOR
     9         | type TK_IDENTIFICADOR
@@ -32,7 +32,7 @@ Grammar
    15 comm_lst: comm ','
    16         | comm_lst comm ','
 
-   17 comm: comm_block
+   17 comm: new_table comm_block cleanup_table
    18     | var_decl
    19     | attrib_comm
    20     | func_call
@@ -46,9 +46,9 @@ Grammar
    25 func_call: TK_IDENTIFICADOR '(' arg_list ')'
    26          | TK_IDENTIFICADOR '(' ')'
 
-   27 flux_ctrl: TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block
-   28          | TK_PR_IF '(' exp ')' comm_block
-   29          | TK_PR_WHILE '(' exp ')' comm_block
+   27 flux_ctrl: TK_PR_IF '(' exp ')' new_table comm_block cleanup_table TK_PR_ELSE new_table comm_block cleanup_table
+   28          | TK_PR_IF '(' exp ')' new_table comm_block cleanup_table
+   29          | TK_PR_WHILE '(' exp ')' new_table comm_block cleanup_table
 
    30 exp: or_exp
 
@@ -97,6 +97,10 @@ Grammar
    63 type: TK_PR_INT
    64     | TK_PR_FLOAT
    65     | TK_PR_BOOL
+
+   66 new_table: ε
+
+   67 cleanup_table: ε
 
 
 Terminals, with rules where they appear
@@ -221,6 +225,12 @@ Nonterminals, with rules where they appear
     type <filler> (63)
         on left: 63 64 65
         on right: 6 7 8 9 23
+    new_table (64)
+        on left: 66
+        on right: 6 7 17 27 28 29
+    cleanup_table (65)
+        on left: 67
+        on right: 5 17 27 28 29
 
 
 State 0
@@ -265,23 +275,19 @@ State 3
 
 State 4
 
-    6 header: '(' • par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR
-    7       | '(' • ')' TK_OC_OR type '/' TK_IDENTIFICADOR
+    6 header: '(' • new_table par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR
+    7       | '(' • new_table ')' TK_OC_OR type '/' TK_IDENTIFICADOR
 
-    TK_PR_INT    shift, and go to state 1
-    TK_PR_FLOAT  shift, and go to state 2
-    TK_PR_BOOL   shift, and go to state 3
-    ')'          shift, and go to state 11
+    $default  reduce using rule 66 (new_table)
 
-    par_list  go to state 12
-    type      go to state 13
+    new_table  go to state 11
 
 
 State 5
 
     0 $accept: program • $end
 
-    $end  shift, and go to state 14
+    $end  shift, and go to state 12
 
 
 State 6
@@ -295,7 +301,7 @@ State 6
 
     $default  reduce using rule 1 (program)
 
-    program     go to state 15
+    program     go to state 13
     global_var  go to state 6
     func        go to state 7
     header      go to state 8
@@ -314,7 +320,7 @@ State 7
 
     $default  reduce using rule 1 (program)
 
-    program     go to state 16
+    program     go to state 14
     global_var  go to state 6
     func        go to state 7
     header      go to state 8
@@ -324,74 +330,65 @@ State 7
 
 State 8
 
-    5 func: header • comm_block
+    5 func: header • comm_block cleanup_table
 
-    '{'  shift, and go to state 17
+    '{'  shift, and go to state 15
 
-    comm_block  go to state 18
+    comm_block  go to state 16
 
 
 State 9
 
     4 global_var: var_decl • ','
 
-    ','  shift, and go to state 19
+    ','  shift, and go to state 17
 
 
 State 10
 
    23 var_decl: type • id_list
 
-    TK_IDENTIFICADOR  shift, and go to state 20
+    TK_IDENTIFICADOR  shift, and go to state 18
 
-    id_list  go to state 21
+    id_list  go to state 19
 
 
 State 11
 
-    7 header: '(' ')' • TK_OC_OR type '/' TK_IDENTIFICADOR
+    6 header: '(' new_table • par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR
+    7       | '(' new_table • ')' TK_OC_OR type '/' TK_IDENTIFICADOR
 
-    TK_OC_OR  shift, and go to state 22
+    TK_PR_INT    shift, and go to state 1
+    TK_PR_FLOAT  shift, and go to state 2
+    TK_PR_BOOL   shift, and go to state 3
+    ')'          shift, and go to state 20
+
+    par_list  go to state 21
+    type      go to state 22
 
 
 State 12
-
-    6 header: '(' par_list • ')' TK_OC_OR type '/' TK_IDENTIFICADOR
-    8 par_list: par_list • ';' type TK_IDENTIFICADOR
-
-    ')'  shift, and go to state 23
-    ';'  shift, and go to state 24
-
-
-State 13
-
-    9 par_list: type • TK_IDENTIFICADOR
-
-    TK_IDENTIFICADOR  shift, and go to state 25
-
-
-State 14
 
     0 $accept: program $end •
 
     $default  accept
 
 
-State 15
+State 13
 
     2 program: global_var program •
 
     $default  reduce using rule 2 (program)
 
 
-State 16
+State 14
 
     3 program: func program •
 
     $default  reduce using rule 3 (program)
 
 
-State 17
+State 15
 
    13 comm_block: '{' • '}'
    14           | '{' • comm_lst '}'
@@ -399,164 +396,147 @@ State 17
     TK_PR_INT         shift, and go to state 1
     TK_PR_FLOAT       shift, and go to state 2
     TK_PR_BOOL        shift, and go to state 3
-    TK_PR_IF          shift, and go to state 26
-    TK_PR_WHILE       shift, and go to state 27
-    TK_PR_RETURN      shift, and go to state 28
-    TK_IDENTIFICADOR  shift, and go to state 29
-    '{'               shift, and go to state 17
-    '}'               shift, and go to state 30
+    TK_PR_IF          shift, and go to state 23
+    TK_PR_WHILE       shift, and go to state 24
+    TK_PR_RETURN      shift, and go to state 25
+    TK_IDENTIFICADOR  shift, and go to state 26
+    '}'               shift, and go to state 27
 
-    ret_comm     go to state 31
-    comm_block   go to state 32
-    comm_lst     go to state 33
-    comm         go to state 34
-    var_decl     go to state 35
-    attrib_comm  go to state 36
-    func_call    go to state 37
-    flux_ctrl    go to state 38
+    $default  reduce using rule 66 (new_table)
+
+    ret_comm     go to state 28
+    comm_lst     go to state 29
+    comm         go to state 30
+    var_decl     go to state 31
+    attrib_comm  go to state 32
+    func_call    go to state 33
+    flux_ctrl    go to state 34
     type         go to state 10
+    new_table    go to state 35
 
 
-State 18
+State 16
 
-    5 func: header comm_block •
+    5 func: header comm_block • cleanup_table
 
-    $default  reduce using rule 5 (func)
+    $default  reduce using rule 67 (cleanup_table)
+
+    cleanup_table  go to state 36
 
 
-State 19
+State 17
 
     4 global_var: var_decl ',' •
 
     $default  reduce using rule 4 (global_var)
 
 
-State 20
+State 18
 
    57 id_list: TK_IDENTIFICADOR •
 
     $default  reduce using rule 57 (id_list)
 
 
-State 21
+State 19
 
    23 var_decl: type id_list •
    58 id_list: id_list • ';' TK_IDENTIFICADOR
 
-    ';'  shift, and go to state 39
+    ';'  shift, and go to state 37
 
     $default  reduce using rule 23 (var_decl)
 
 
+State 20
+
+    7 header: '(' new_table ')' • TK_OC_OR type '/' TK_IDENTIFICADOR
+
+    TK_OC_OR  shift, and go to state 38
+
+
+State 21
+
+    6 header: '(' new_table par_list • ')' TK_OC_OR type '/' TK_IDENTIFICADOR
+    8 par_list: par_list • ';' type TK_IDENTIFICADOR
+
+    ')'  shift, and go to state 39
+    ';'  shift, and go to state 40
+
+
 State 22
 
-    7 header: '(' ')' TK_OC_OR • type '/' TK_IDENTIFICADOR
+    9 par_list: type • TK_IDENTIFICADOR
 
-    TK_PR_INT    shift, and go to state 1
-    TK_PR_FLOAT  shift, and go to state 2
-    TK_PR_BOOL   shift, and go to state 3
-
-    type  go to state 40
+    TK_IDENTIFICADOR  shift, and go to state 41
 
 
 State 23
 
-    6 header: '(' par_list ')' • TK_OC_OR type '/' TK_IDENTIFICADOR
+   27 flux_ctrl: TK_PR_IF • '(' exp ')' new_table comm_block cleanup_table TK_PR_ELSE new_table comm_block cleanup_table
+   28          | TK_PR_IF • '(' exp ')' new_table comm_block cleanup_table
 
-    TK_OC_OR  shift, and go to state 41
+    '('  shift, and go to state 42
 
 
 State 24
 
-    8 par_list: par_list ';' • type TK_IDENTIFICADOR
-
-    TK_PR_INT    shift, and go to state 1
-    TK_PR_FLOAT  shift, and go to state 2
-    TK_PR_BOOL   shift, and go to state 3
-
-    type  go to state 42
-
-
-State 25
-
-    9 par_list: type TK_IDENTIFICADOR •
-
-    $default  reduce using rule 9 (par_list)
-
-
-State 26
-
-   27 flux_ctrl: TK_PR_IF • '(' exp ')' comm_block TK_PR_ELSE comm_block
-   28          | TK_PR_IF • '(' exp ')' comm_block
+   29 flux_ctrl: TK_PR_WHILE • '(' exp ')' new_table comm_block cleanup_table
 
     '('  shift, and go to state 43
 
 
-State 27
-
-   29 flux_ctrl: TK_PR_WHILE • '(' exp ')' comm_block
-
-    '('  shift, and go to state 44
-
-
-State 28
+State 25
 
    12 ret_comm: TK_PR_RETURN • exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    exp        go to state 54
-    or_exp     go to state 55
-    and_exp    go to state 56
-    eq_exp     go to state 57
-    comp_exp   go to state 58
-    sum_exp    go to state 59
-    mult_exp   go to state 60
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    exp        go to state 53
+    or_exp     go to state 54
+    and_exp    go to state 55
+    eq_exp     go to state 56
+    comp_exp   go to state 57
+    sum_exp    go to state 58
+    mult_exp   go to state 59
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
-State 29
+State 26
 
    24 attrib_comm: TK_IDENTIFICADOR • '=' exp
    25 func_call: TK_IDENTIFICADOR • '(' arg_list ')'
    26          | TK_IDENTIFICADOR • '(' ')'
 
-    '='  shift, and go to state 64
-    '('  shift, and go to state 65
+    '='  shift, and go to state 63
+    '('  shift, and go to state 64
 
 
-State 30
+State 27
 
    13 comm_block: '{' '}' •
 
     $default  reduce using rule 13 (comm_block)
 
 
-State 31
+State 28
 
    21 comm: ret_comm •
 
     $default  reduce using rule 21 (comm)
 
 
-State 32
-
-   17 comm: comm_block •
-
-    $default  reduce using rule 17 (comm)
-
-
-State 33
+State 29
 
    14 comm_block: '{' comm_lst • '}'
    16 comm_lst: comm_lst • comm ','
@@ -564,261 +544,289 @@ State 33
     TK_PR_INT         shift, and go to state 1
     TK_PR_FLOAT       shift, and go to state 2
     TK_PR_BOOL        shift, and go to state 3
-    TK_PR_IF          shift, and go to state 26
-    TK_PR_WHILE       shift, and go to state 27
-    TK_PR_RETURN      shift, and go to state 28
-    TK_IDENTIFICADOR  shift, and go to state 29
-    '{'               shift, and go to state 17
-    '}'               shift, and go to state 66
+    TK_PR_IF          shift, and go to state 23
+    TK_PR_WHILE       shift, and go to state 24
+    TK_PR_RETURN      shift, and go to state 25
+    TK_IDENTIFICADOR  shift, and go to state 26
+    '}'               shift, and go to state 65
 
-    ret_comm     go to state 31
-    comm_block   go to state 32
-    comm         go to state 67
-    var_decl     go to state 35
-    attrib_comm  go to state 36
-    func_call    go to state 37
-    flux_ctrl    go to state 38
+    $default  reduce using rule 66 (new_table)
+
+    ret_comm     go to state 28
+    comm         go to state 66
+    var_decl     go to state 31
+    attrib_comm  go to state 32
+    func_call    go to state 33
+    flux_ctrl    go to state 34
     type         go to state 10
+    new_table    go to state 35
 
 
-State 34
+State 30
 
    15 comm_lst: comm • ','
 
-    ','  shift, and go to state 68
+    ','  shift, and go to state 67
 
 
-State 35
+State 31
 
    18 comm: var_decl •
 
     $default  reduce using rule 18 (comm)
 
 
-State 36
+State 32
 
    19 comm: attrib_comm •
 
     $default  reduce using rule 19 (comm)
 
 
-State 37
+State 33
 
    20 comm: func_call •
 
     $default  reduce using rule 20 (comm)
 
 
-State 38
+State 34
 
    22 comm: flux_ctrl •
 
     $default  reduce using rule 22 (comm)
 
 
-State 39
+State 35
+
+   17 comm: new_table • comm_block cleanup_table
+
+    '{'  shift, and go to state 15
+
+    comm_block  go to state 68
+
+
+State 36
+
+    5 func: header comm_block cleanup_table •
+
+    $default  reduce using rule 5 (func)
+
+
+State 37
 
    58 id_list: id_list ';' • TK_IDENTIFICADOR
 
     TK_IDENTIFICADOR  shift, and go to state 69
 
 
-State 40
+State 38
 
-    7 header: '(' ')' TK_OC_OR type • '/' TK_IDENTIFICADOR
-
-    '/'  shift, and go to state 70
-
-
-State 41
-
-    6 header: '(' par_list ')' TK_OC_OR • type '/' TK_IDENTIFICADOR
+    7 header: '(' new_table ')' TK_OC_OR • type '/' TK_IDENTIFICADOR
 
     TK_PR_INT    shift, and go to state 1
     TK_PR_FLOAT  shift, and go to state 2
     TK_PR_BOOL   shift, and go to state 3
 
-    type  go to state 71
+    type  go to state 70
+
+
+State 39
+
+    6 header: '(' new_table par_list ')' • TK_OC_OR type '/' TK_IDENTIFICADOR
+
+    TK_OC_OR  shift, and go to state 71
+
+
+State 40
+
+    8 par_list: par_list ';' • type TK_IDENTIFICADOR
+
+    TK_PR_INT    shift, and go to state 1
+    TK_PR_FLOAT  shift, and go to state 2
+    TK_PR_BOOL   shift, and go to state 3
+
+    type  go to state 72
+
+
+State 41
+
+    9 par_list: type TK_IDENTIFICADOR •
+
+    $default  reduce using rule 9 (par_list)
 
 
 State 42
 
-    8 par_list: par_list ';' type • TK_IDENTIFICADOR
+   27 flux_ctrl: TK_PR_IF '(' • exp ')' new_table comm_block cleanup_table TK_PR_ELSE new_table comm_block cleanup_table
+   28          | TK_PR_IF '(' • exp ')' new_table comm_block cleanup_table
 
-    TK_IDENTIFICADOR  shift, and go to state 72
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
+
+    func_call  go to state 52
+    exp        go to state 73
+    or_exp     go to state 54
+    and_exp    go to state 55
+    eq_exp     go to state 56
+    comp_exp   go to state 57
+    sum_exp    go to state 58
+    mult_exp   go to state 59
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 43
 
-   27 flux_ctrl: TK_PR_IF '(' • exp ')' comm_block TK_PR_ELSE comm_block
-   28          | TK_PR_IF '(' • exp ')' comm_block
+   29 flux_ctrl: TK_PR_WHILE '(' • exp ')' new_table comm_block cleanup_table
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    exp        go to state 73
-    or_exp     go to state 55
-    and_exp    go to state 56
-    eq_exp     go to state 57
-    comp_exp   go to state 58
-    sum_exp    go to state 59
-    mult_exp   go to state 60
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    exp        go to state 74
+    or_exp     go to state 54
+    and_exp    go to state 55
+    eq_exp     go to state 56
+    comp_exp   go to state 57
+    sum_exp    go to state 58
+    mult_exp   go to state 59
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 44
 
-   29 flux_ctrl: TK_PR_WHILE '(' • exp ')' comm_block
+   50 un_exp: '-' • un_exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    exp        go to state 74
-    or_exp     go to state 55
-    and_exp    go to state 56
-    eq_exp     go to state 57
-    comp_exp   go to state 58
-    sum_exp    go to state 59
-    mult_exp   go to state 60
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    un_exp     go to state 75
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 45
 
-   50 un_exp: '-' • un_exp
+   51 un_exp: '!' • un_exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    un_exp     go to state 75
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    un_exp     go to state 76
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 46
-
-   51 un_exp: '!' • un_exp
-
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
-
-    func_call  go to state 53
-    un_exp     go to state 76
-    operand    go to state 62
-    lit        go to state 63
-
-
-State 47
 
    25 func_call: TK_IDENTIFICADOR • '(' arg_list ')'
    26          | TK_IDENTIFICADOR • '(' ')'
    53 operand: TK_IDENTIFICADOR •
 
-    '('  shift, and go to state 65
+    '('  shift, and go to state 64
 
     $default  reduce using rule 53 (operand)
 
 
-State 48
+State 47
 
    59 lit: TK_LIT_INT •
 
     $default  reduce using rule 59 (lit)
 
 
-State 49
+State 48
 
    60 lit: TK_LIT_FLOAT •
 
     $default  reduce using rule 60 (lit)
 
 
-State 50
+State 49
 
    61 lit: TK_LIT_FALSE •
 
     $default  reduce using rule 61 (lit)
 
 
-State 51
+State 50
 
    62 lit: TK_LIT_TRUE •
 
     $default  reduce using rule 62 (lit)
 
 
-State 52
+State 51
 
    56 operand: '(' • exp ')'
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
+    func_call  go to state 52
     exp        go to state 77
-    or_exp     go to state 55
-    and_exp    go to state 56
-    eq_exp     go to state 57
-    comp_exp   go to state 58
-    sum_exp    go to state 59
-    mult_exp   go to state 60
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
+    or_exp     go to state 54
+    and_exp    go to state 55
+    eq_exp     go to state 56
+    comp_exp   go to state 57
+    sum_exp    go to state 58
+    mult_exp   go to state 59
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
-State 53
+State 52
 
    55 operand: func_call •
 
     $default  reduce using rule 55 (operand)
 
 
-State 54
+State 53
 
    12 ret_comm: TK_PR_RETURN exp •
 
     $default  reduce using rule 12 (ret_comm)
 
 
-State 55
+State 54
 
    30 exp: or_exp •
    31 or_exp: or_exp • TK_OC_OR and_exp
@@ -828,7 +836,7 @@ State 55
     $default  reduce using rule 30 (exp)
 
 
-State 56
+State 55
 
    32 or_exp: and_exp •
    33 and_exp: and_exp • TK_OC_AND eq_exp
@@ -838,7 +846,7 @@ State 56
     $default  reduce using rule 32 (or_exp)
 
 
-State 57
+State 56
 
    34 and_exp: eq_exp •
    35 eq_exp: eq_exp • TK_OC_EQ comp_exp
@@ -850,7 +858,7 @@ State 57
     $default  reduce using rule 34 (and_exp)
 
 
-State 58
+State 57
 
    37 eq_exp: comp_exp •
    38 comp_exp: comp_exp • '<' sum_exp
@@ -866,7 +874,7 @@ State 58
     $default  reduce using rule 37 (eq_exp)
 
 
-State 59
+State 58
 
    42 comp_exp: sum_exp •
    43 sum_exp: sum_exp • '+' mult_exp
@@ -878,7 +886,7 @@ State 59
     $default  reduce using rule 42 (comp_exp)
 
 
-State 60
+State 59
 
    45 sum_exp: mult_exp •
    46 mult_exp: mult_exp • '*' un_exp
@@ -892,101 +900,110 @@ State 60
     $default  reduce using rule 45 (sum_exp)
 
 
-State 61
+State 60
 
    49 mult_exp: un_exp •
 
     $default  reduce using rule 49 (mult_exp)
 
 
-State 62
+State 61
 
    52 un_exp: operand •
 
     $default  reduce using rule 52 (un_exp)
 
 
-State 63
+State 62
 
    54 operand: lit •
 
     $default  reduce using rule 54 (operand)
 
 
-State 64
+State 63
 
    24 attrib_comm: TK_IDENTIFICADOR '=' • exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
+    func_call  go to state 52
     exp        go to state 91
-    or_exp     go to state 55
-    and_exp    go to state 56
-    eq_exp     go to state 57
-    comp_exp   go to state 58
-    sum_exp    go to state 59
-    mult_exp   go to state 60
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
+    or_exp     go to state 54
+    and_exp    go to state 55
+    eq_exp     go to state 56
+    comp_exp   go to state 57
+    sum_exp    go to state 58
+    mult_exp   go to state 59
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
-State 65
+State 64
 
    25 func_call: TK_IDENTIFICADOR '(' • arg_list ')'
    26          | TK_IDENTIFICADOR '(' • ')'
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
     ')'               shift, and go to state 92
 
     arg_list   go to state 93
-    func_call  go to state 53
+    func_call  go to state 52
     exp        go to state 94
-    or_exp     go to state 55
-    and_exp    go to state 56
-    eq_exp     go to state 57
-    comp_exp   go to state 58
-    sum_exp    go to state 59
-    mult_exp   go to state 60
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
+    or_exp     go to state 54
+    and_exp    go to state 55
+    eq_exp     go to state 56
+    comp_exp   go to state 57
+    sum_exp    go to state 58
+    mult_exp   go to state 59
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
-State 66
+State 65
 
    14 comm_block: '{' comm_lst '}' •
 
     $default  reduce using rule 14 (comm_block)
 
 
-State 67
+State 66
 
    16 comm_lst: comm_lst comm • ','
 
     ','  shift, and go to state 95
 
 
-State 68
+State 67
 
    15 comm_lst: comm ',' •
 
     $default  reduce using rule 15 (comm_lst)
+
+
+State 68
+
+   17 comm: new_table comm_block • cleanup_table
+
+    $default  reduce using rule 67 (cleanup_table)
+
+    cleanup_table  go to state 96
 
 
 State 69
@@ -998,38 +1015,42 @@ State 69
 
 State 70
 
-    7 header: '(' ')' TK_OC_OR type '/' • TK_IDENTIFICADOR
-
-    TK_IDENTIFICADOR  shift, and go to state 96
-
-
-State 71
-
-    6 header: '(' par_list ')' TK_OC_OR type • '/' TK_IDENTIFICADOR
+    7 header: '(' new_table ')' TK_OC_OR type • '/' TK_IDENTIFICADOR
 
     '/'  shift, and go to state 97
 
 
+State 71
+
+    6 header: '(' new_table par_list ')' TK_OC_OR • type '/' TK_IDENTIFICADOR
+
+    TK_PR_INT    shift, and go to state 1
+    TK_PR_FLOAT  shift, and go to state 2
+    TK_PR_BOOL   shift, and go to state 3
+
+    type  go to state 98
+
+
 State 72
 
-    8 par_list: par_list ';' type TK_IDENTIFICADOR •
+    8 par_list: par_list ';' type • TK_IDENTIFICADOR
 
-    $default  reduce using rule 8 (par_list)
+    TK_IDENTIFICADOR  shift, and go to state 99
 
 
 State 73
 
-   27 flux_ctrl: TK_PR_IF '(' exp • ')' comm_block TK_PR_ELSE comm_block
-   28          | TK_PR_IF '(' exp • ')' comm_block
+   27 flux_ctrl: TK_PR_IF '(' exp • ')' new_table comm_block cleanup_table TK_PR_ELSE new_table comm_block cleanup_table
+   28          | TK_PR_IF '(' exp • ')' new_table comm_block cleanup_table
 
-    ')'  shift, and go to state 98
+    ')'  shift, and go to state 100
 
 
 State 74
 
-   29 flux_ctrl: TK_PR_WHILE '(' exp • ')' comm_block
+   29 flux_ctrl: TK_PR_WHILE '(' exp • ')' new_table comm_block cleanup_table
 
-    ')'  shift, and go to state 99
+    ')'  shift, and go to state 101
 
 
 State 75
@@ -1050,279 +1071,279 @@ State 77
 
    56 operand: '(' exp • ')'
 
-    ')'  shift, and go to state 100
+    ')'  shift, and go to state 102
 
 
 State 78
 
    31 or_exp: or_exp TK_OC_OR • and_exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    and_exp    go to state 101
-    eq_exp     go to state 57
-    comp_exp   go to state 58
-    sum_exp    go to state 59
-    mult_exp   go to state 60
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    and_exp    go to state 103
+    eq_exp     go to state 56
+    comp_exp   go to state 57
+    sum_exp    go to state 58
+    mult_exp   go to state 59
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 79
 
    33 and_exp: and_exp TK_OC_AND • eq_exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    eq_exp     go to state 102
-    comp_exp   go to state 58
-    sum_exp    go to state 59
-    mult_exp   go to state 60
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    eq_exp     go to state 104
+    comp_exp   go to state 57
+    sum_exp    go to state 58
+    mult_exp   go to state 59
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 80
 
    35 eq_exp: eq_exp TK_OC_EQ • comp_exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    comp_exp   go to state 103
-    sum_exp    go to state 59
-    mult_exp   go to state 60
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    comp_exp   go to state 105
+    sum_exp    go to state 58
+    mult_exp   go to state 59
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 81
 
    36 eq_exp: eq_exp TK_OC_NE • comp_exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    comp_exp   go to state 104
-    sum_exp    go to state 59
-    mult_exp   go to state 60
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    comp_exp   go to state 106
+    sum_exp    go to state 58
+    mult_exp   go to state 59
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 82
 
    38 comp_exp: comp_exp '<' • sum_exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    sum_exp    go to state 105
-    mult_exp   go to state 60
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    sum_exp    go to state 107
+    mult_exp   go to state 59
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 83
 
    39 comp_exp: comp_exp '>' • sum_exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    sum_exp    go to state 106
-    mult_exp   go to state 60
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    sum_exp    go to state 108
+    mult_exp   go to state 59
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 84
 
    40 comp_exp: comp_exp TK_OC_LE • sum_exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    sum_exp    go to state 107
-    mult_exp   go to state 60
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    sum_exp    go to state 109
+    mult_exp   go to state 59
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 85
 
    41 comp_exp: comp_exp TK_OC_GE • sum_exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    sum_exp    go to state 108
-    mult_exp   go to state 60
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    sum_exp    go to state 110
+    mult_exp   go to state 59
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 86
 
    43 sum_exp: sum_exp '+' • mult_exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    mult_exp   go to state 109
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    mult_exp   go to state 111
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 87
 
    44 sum_exp: sum_exp '-' • mult_exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    mult_exp   go to state 110
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    mult_exp   go to state 112
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 88
 
    46 mult_exp: mult_exp '*' • un_exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    un_exp     go to state 111
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    un_exp     go to state 113
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 89
 
    47 mult_exp: mult_exp '/' • un_exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    un_exp     go to state 112
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    un_exp     go to state 114
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 90
 
    48 mult_exp: mult_exp '%' • un_exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    un_exp     go to state 113
-    operand    go to state 62
-    lit        go to state 63
+    func_call  go to state 52
+    un_exp     go to state 115
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 91
@@ -1344,8 +1365,8 @@ State 93
    11 arg_list: arg_list • ';' exp
    25 func_call: TK_IDENTIFICADOR '(' arg_list • ')'
 
-    ')'  shift, and go to state 114
-    ';'  shift, and go to state 115
+    ')'  shift, and go to state 116
+    ';'  shift, and go to state 117
 
 
 State 94
@@ -1364,45 +1385,59 @@ State 95
 
 State 96
 
-    7 header: '(' ')' TK_OC_OR type '/' TK_IDENTIFICADOR •
+   17 comm: new_table comm_block cleanup_table •
 
-    $default  reduce using rule 7 (header)
+    $default  reduce using rule 17 (comm)
 
 
 State 97
 
-    6 header: '(' par_list ')' TK_OC_OR type '/' • TK_IDENTIFICADOR
+    7 header: '(' new_table ')' TK_OC_OR type '/' • TK_IDENTIFICADOR
 
-    TK_IDENTIFICADOR  shift, and go to state 116
+    TK_IDENTIFICADOR  shift, and go to state 118
 
 
 State 98
 
-   27 flux_ctrl: TK_PR_IF '(' exp ')' • comm_block TK_PR_ELSE comm_block
-   28          | TK_PR_IF '(' exp ')' • comm_block
+    6 header: '(' new_table par_list ')' TK_OC_OR type • '/' TK_IDENTIFICADOR
 
-    '{'  shift, and go to state 17
-
-    comm_block  go to state 117
+    '/'  shift, and go to state 119
 
 
 State 99
 
-   29 flux_ctrl: TK_PR_WHILE '(' exp ')' • comm_block
+    8 par_list: par_list ';' type TK_IDENTIFICADOR •
 
-    '{'  shift, and go to state 17
-
-    comm_block  go to state 118
+    $default  reduce using rule 8 (par_list)
 
 
 State 100
+
+   27 flux_ctrl: TK_PR_IF '(' exp ')' • new_table comm_block cleanup_table TK_PR_ELSE new_table comm_block cleanup_table
+   28          | TK_PR_IF '(' exp ')' • new_table comm_block cleanup_table
+
+    $default  reduce using rule 66 (new_table)
+
+    new_table  go to state 120
+
+
+State 101
+
+   29 flux_ctrl: TK_PR_WHILE '(' exp ')' • new_table comm_block cleanup_table
+
+    $default  reduce using rule 66 (new_table)
+
+    new_table  go to state 121
+
+
+State 102
 
    56 operand: '(' exp ')' •
 
     $default  reduce using rule 56 (operand)
 
 
-State 101
+State 103
 
    31 or_exp: or_exp TK_OC_OR and_exp •
    33 and_exp: and_exp • TK_OC_AND eq_exp
@@ -1412,7 +1447,7 @@ State 101
     $default  reduce using rule 31 (or_exp)
 
 
-State 102
+State 104
 
    33 and_exp: and_exp TK_OC_AND eq_exp •
    35 eq_exp: eq_exp • TK_OC_EQ comp_exp
@@ -1424,7 +1459,7 @@ State 102
     $default  reduce using rule 33 (and_exp)
 
 
-State 103
+State 105
 
    35 eq_exp: eq_exp TK_OC_EQ comp_exp •
    38 comp_exp: comp_exp • '<' sum_exp
@@ -1440,7 +1475,7 @@ State 103
     $default  reduce using rule 35 (eq_exp)
 
 
-State 104
+State 106
 
    36 eq_exp: eq_exp TK_OC_NE comp_exp •
    38 comp_exp: comp_exp • '<' sum_exp
@@ -1456,7 +1491,7 @@ State 104
     $default  reduce using rule 36 (eq_exp)
 
 
-State 105
+State 107
 
    38 comp_exp: comp_exp '<' sum_exp •
    43 sum_exp: sum_exp • '+' mult_exp
@@ -1468,7 +1503,7 @@ State 105
     $default  reduce using rule 38 (comp_exp)
 
 
-State 106
+State 108
 
    39 comp_exp: comp_exp '>' sum_exp •
    43 sum_exp: sum_exp • '+' mult_exp
@@ -1480,7 +1515,7 @@ State 106
     $default  reduce using rule 39 (comp_exp)
 
 
-State 107
+State 109
 
    40 comp_exp: comp_exp TK_OC_LE sum_exp •
    43 sum_exp: sum_exp • '+' mult_exp
@@ -1492,7 +1527,7 @@ State 107
     $default  reduce using rule 40 (comp_exp)
 
 
-State 108
+State 110
 
    41 comp_exp: comp_exp TK_OC_GE sum_exp •
    43 sum_exp: sum_exp • '+' mult_exp
@@ -1504,7 +1539,7 @@ State 108
     $default  reduce using rule 41 (comp_exp)
 
 
-State 109
+State 111
 
    43 sum_exp: sum_exp '+' mult_exp •
    46 mult_exp: mult_exp • '*' un_exp
@@ -1518,7 +1553,7 @@ State 109
     $default  reduce using rule 43 (sum_exp)
 
 
-State 110
+State 112
 
    44 sum_exp: sum_exp '-' mult_exp •
    46 mult_exp: mult_exp • '*' un_exp
@@ -1532,102 +1567,172 @@ State 110
     $default  reduce using rule 44 (sum_exp)
 
 
-State 111
+State 113
 
    46 mult_exp: mult_exp '*' un_exp •
 
     $default  reduce using rule 46 (mult_exp)
 
 
-State 112
+State 114
 
    47 mult_exp: mult_exp '/' un_exp •
 
     $default  reduce using rule 47 (mult_exp)
 
 
-State 113
+State 115
 
    48 mult_exp: mult_exp '%' un_exp •
 
     $default  reduce using rule 48 (mult_exp)
 
 
-State 114
+State 116
 
    25 func_call: TK_IDENTIFICADOR '(' arg_list ')' •
 
     $default  reduce using rule 25 (func_call)
 
 
-State 115
+State 117
 
    11 arg_list: arg_list ';' • exp
 
-    '-'               shift, and go to state 45
-    '!'               shift, and go to state 46
-    TK_IDENTIFICADOR  shift, and go to state 47
-    TK_LIT_INT        shift, and go to state 48
-    TK_LIT_FLOAT      shift, and go to state 49
-    TK_LIT_FALSE      shift, and go to state 50
-    TK_LIT_TRUE       shift, and go to state 51
-    '('               shift, and go to state 52
+    '-'               shift, and go to state 44
+    '!'               shift, and go to state 45
+    TK_IDENTIFICADOR  shift, and go to state 46
+    TK_LIT_INT        shift, and go to state 47
+    TK_LIT_FLOAT      shift, and go to state 48
+    TK_LIT_FALSE      shift, and go to state 49
+    TK_LIT_TRUE       shift, and go to state 50
+    '('               shift, and go to state 51
 
-    func_call  go to state 53
-    exp        go to state 119
-    or_exp     go to state 55
-    and_exp    go to state 56
-    eq_exp     go to state 57
-    comp_exp   go to state 58
-    sum_exp    go to state 59
-    mult_exp   go to state 60
-    un_exp     go to state 61
-    operand    go to state 62
-    lit        go to state 63
-
-
-State 116
-
-    6 header: '(' par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR •
-
-    $default  reduce using rule 6 (header)
-
-
-State 117
-
-   27 flux_ctrl: TK_PR_IF '(' exp ')' comm_block • TK_PR_ELSE comm_block
-   28          | TK_PR_IF '(' exp ')' comm_block •
-
-    TK_PR_ELSE  shift, and go to state 120
-
-    $default  reduce using rule 28 (flux_ctrl)
+    func_call  go to state 52
+    exp        go to state 122
+    or_exp     go to state 54
+    and_exp    go to state 55
+    eq_exp     go to state 56
+    comp_exp   go to state 57
+    sum_exp    go to state 58
+    mult_exp   go to state 59
+    un_exp     go to state 60
+    operand    go to state 61
+    lit        go to state 62
 
 
 State 118
 
-   29 flux_ctrl: TK_PR_WHILE '(' exp ')' comm_block •
+    7 header: '(' new_table ')' TK_OC_OR type '/' TK_IDENTIFICADOR •
 
-    $default  reduce using rule 29 (flux_ctrl)
+    $default  reduce using rule 7 (header)
 
 
 State 119
+
+    6 header: '(' new_table par_list ')' TK_OC_OR type '/' • TK_IDENTIFICADOR
+
+    TK_IDENTIFICADOR  shift, and go to state 123
+
+
+State 120
+
+   27 flux_ctrl: TK_PR_IF '(' exp ')' new_table • comm_block cleanup_table TK_PR_ELSE new_table comm_block cleanup_table
+   28          | TK_PR_IF '(' exp ')' new_table • comm_block cleanup_table
+
+    '{'  shift, and go to state 15
+
+    comm_block  go to state 124
+
+
+State 121
+
+   29 flux_ctrl: TK_PR_WHILE '(' exp ')' new_table • comm_block cleanup_table
+
+    '{'  shift, and go to state 15
+
+    comm_block  go to state 125
+
+
+State 122
 
    11 arg_list: arg_list ';' exp •
 
     $default  reduce using rule 11 (arg_list)
 
 
-State 120
+State 123
 
-   27 flux_ctrl: TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE • comm_block
+    6 header: '(' new_table par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR •
 
-    '{'  shift, and go to state 17
-
-    comm_block  go to state 121
+    $default  reduce using rule 6 (header)
 
 
-State 121
+State 124
 
-   27 flux_ctrl: TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block •
+   27 flux_ctrl: TK_PR_IF '(' exp ')' new_table comm_block • cleanup_table TK_PR_ELSE new_table comm_block cleanup_table
+   28          | TK_PR_IF '(' exp ')' new_table comm_block • cleanup_table
+
+    $default  reduce using rule 67 (cleanup_table)
+
+    cleanup_table  go to state 126
+
+
+State 125
+
+   29 flux_ctrl: TK_PR_WHILE '(' exp ')' new_table comm_block • cleanup_table
+
+    $default  reduce using rule 67 (cleanup_table)
+
+    cleanup_table  go to state 127
+
+
+State 126
+
+   27 flux_ctrl: TK_PR_IF '(' exp ')' new_table comm_block cleanup_table • TK_PR_ELSE new_table comm_block cleanup_table
+   28          | TK_PR_IF '(' exp ')' new_table comm_block cleanup_table •
+
+    TK_PR_ELSE  shift, and go to state 128
+
+    $default  reduce using rule 28 (flux_ctrl)
+
+
+State 127
+
+   29 flux_ctrl: TK_PR_WHILE '(' exp ')' new_table comm_block cleanup_table •
+
+    $default  reduce using rule 29 (flux_ctrl)
+
+
+State 128
+
+   27 flux_ctrl: TK_PR_IF '(' exp ')' new_table comm_block cleanup_table TK_PR_ELSE • new_table comm_block cleanup_table
+
+    $default  reduce using rule 66 (new_table)
+
+    new_table  go to state 129
+
+
+State 129
+
+   27 flux_ctrl: TK_PR_IF '(' exp ')' new_table comm_block cleanup_table TK_PR_ELSE new_table • comm_block cleanup_table
+
+    '{'  shift, and go to state 15
+
+    comm_block  go to state 130
+
+
+State 130
+
+   27 flux_ctrl: TK_PR_IF '(' exp ')' new_table comm_block cleanup_table TK_PR_ELSE new_table comm_block • cleanup_table
+
+    $default  reduce using rule 67 (cleanup_table)
+
+    cleanup_table  go to state 131
+
+
+State 131
+
+   27 flux_ctrl: TK_PR_IF '(' exp ')' new_table comm_block cleanup_table TK_PR_ELSE new_table comm_block cleanup_table •
 
     $default  reduce using rule 27 (flux_ctrl)

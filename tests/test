@@ -1,8 +1,14 @@
-(int i; int j; int k)|int/g{
+float gv1,
+float gv2,
+bool gv3,
+int gv4,
+
+(int i; int j; int k)|int/foo{
 }
-() | int / f{
-    int a,
-    int b,
-    int c,
-    g(a; b; c),
+(int z; bool gv3) | int / bar{
+    int a; d; e,
+    float b,
+    bool c,
+
+    foo = 10;
 }

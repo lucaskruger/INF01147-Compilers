@@ -6,16 +6,16 @@ void *arvore = NULL;
 void exporta(void *arvore);
 
 int main(int argc, char **argv) {
-  /*int ret = yyparse();
+  int ret = yyparse();
   //exporta(arvore);
   yylex_destroy();
-  return ret;*/
+  return ret;
 
-  symbol_table *testTable;
+  /*symbol_table *testTable;
 
   initialize_symbol_table(&testTable);
 
-  symbol_table_entry new_entry = create_table_entry("entry1", 10, IDENTIFIER, BOOL, "true");
+  symbol_table_entry new_entry = create_table_entry("entry1", 10, IDENTIFIER, BOOL, NULL);
 
   insert_symbol_table(testTable, new_entry);
 
@@ -39,5 +39,5 @@ int main(int argc, char **argv) {
     printf("ENTRY NOT FOUND\n");
   }
 
-  free_symbol_table(testTable);
+  free_symbol_table(testTable);*/
 }

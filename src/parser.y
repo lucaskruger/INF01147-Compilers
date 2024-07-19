@@ -4,16 +4,82 @@
 //%define api.value.type {int } 
 %{
 #include "../include/ast.h"
+#include "../include/symbol_table.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define ERR_UNDECLARED 10
+#define ERR_DECLARED 11
+#define ERR_VARIABLE 20
+#define ERR_FUNCTION 21
+
+void parser_declare_identifier(symbol_table *table, char* identifier, entry_nature nature, entry_type data_type);
+void parser_identifier_check(table_stack *table, char* identifier, entry_nature expected_nature);
+
+struct id_stack{
+    char *current_id;
+    struct id_stack *next_id;
+};
 
 int yylex(void);
 extern int get_line_number();
 extern void *arvore;
 void yyerror (char const *mensagem);
 void yylex_destroy();
+
+void parser_declare_identifier(symbol_table *table, char* identifier, entry_nature nature, entry_type data_type){
+
+    if(search_symbol_table(table, identifier) != NULL){
+        printf("Line %d: ERROR (%d): Variable %s already declared in this scope.\n", get_line_number(), ERR_DECLARED, identifier);
+        exit(ERR_DECLARED);
+    }
+
+    symbol_table_entry newEntry = create_table_entry(identifier, get_line_number(), nature, data_type, NULL);
+    insert_symbol_table(table, newEntry);
+
+    /*print_symbol_table(table);
+    printf("\n");*/
+}
+
+void parser_identifier_check(table_stack *table, char* identifier, entry_nature expected_nature){
+
+    symbol_table_entry *searched_entry = search_table_stack(&table, identifier);
+
+    if(searched_entry == NULL){
+        printf("Line %d: ERROR (%d): Undeclared identifier %s.\n", get_line_number(), ERR_UNDECLARED, identifier);
+        exit(ERR_UNDECLARED);
+    } else {
+        if(expected_nature == FUNCTION && searched_entry->nature == IDENTIFIER){
+            printf("Line %d: ERROR (%d): Variable identifier %s used as function.\n", get_line_number(), ERR_VARIABLE, identifier);
+            exit(ERR_VARIABLE);
+        }
+        if(expected_nature == IDENTIFIER && searched_entry->nature == FUNCTION){
+            printf("Line %d: ERROR (%d): Function identifier %s used as variable.\n", get_line_number(), ERR_FUNCTION, identifier);
+            exit(ERR_FUNCTION);
+        }
+    }
+}
+
+
 node_s *head = NULL;
+
+symbol_table globalTable = {
+    .entry = {
+        .identifier = NULL
+    },
+    .next_entry = NULL
+};
+
+table_stack symbolTableStack = {
+   .table = &globalTable,
+   .prev_table = NULL
+};
+table_stack *tableStackHead = &symbolTableStack;
+
+struct id_stack idStack = { .current_id = NULL, .next_id = NULL };
+struct id_stack *idStackHead = &idStack;
+
 %}
 
 %union{
@@ -79,33 +145,42 @@ global_var:       var_decl ','{
 
                 // 3.2 Function definition
 
-func:             header comm_block {
+func:             header comm_block cleanup_table{
                     add_child($1, $2);
                     $$ = $1;
                     }
                 ;
 
-header:    '(' par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR {
-                    //add_child($7,$2);
-                    update_label($7,$7->lex_val->tk_value);
-                    $$ = $7;
-                    }
+header:    '(' new_table par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR {
+                //add_child($7,$2);
+                update_label($8,$8->lex_val->tk_value);
+                $$ = $8;
 
-                | '(' ')' TK_OC_OR type '/' TK_IDENTIFICADOR {
-                    update_label($6,$6->lex_val->tk_value);
-                    $$ = $6;
-                    }
-                ;
+                symbol_table *baseTable = table_stack_base(&tableStackHead);
+                parser_declare_identifier(baseTable, $8->lex_val->tk_value, FUNCTION, $6);
 
-par_list:         par_list ';' type TK_IDENTIFICADOR {
-                    //add_child($1,$4);
-                    $$ = $1;
-                    }
+                }
 
-                | type TK_IDENTIFICADOR {
-                    $$ = $2;
-                    }
-                ;
+            | '(' new_table ')' TK_OC_OR type '/' TK_IDENTIFICADOR {
+                update_label($7,$7->lex_val->tk_value);
+                $$ = $7;
+
+                symbol_table *baseTable = table_stack_base(&tableStackHead);
+                parser_declare_identifier(baseTable, $7->lex_val->tk_value, FUNCTION, $5);
+                }
+            ;
+
+par_list:   par_list ';' type TK_IDENTIFICADOR {
+                //add_child($1,$4);
+                $$ = $1;
+                parser_declare_identifier(tableStackHead->table, $4->lex_val->tk_value, IDENTIFIER, $3);
+            }
+
+            | type TK_IDENTIFICADOR {
+                $$ = $2;
+                parser_declare_identifier(tableStackHead->table, $2->lex_val->tk_value, IDENTIFIER, $1);
+            }
+            ;
 
 arg_list:         exp{
                     node_stack_push(&head,$1);
@@ -166,8 +241,8 @@ comm_lst:       comm ',' {
 
 // 3.4 Simple Command 
 
-comm:             comm_block {
-                    $$ = $1;
+comm:           new_table comm_block cleanup_table{
+                    $$ = $2;
                     } 
 
                 | var_decl {
@@ -191,7 +266,24 @@ comm:             comm_block {
                     } 
                 ;
 
-var_decl:         type id_list {$$ = NULL;}//var_decl should not be on the ast
+var_decl:         type id_list {
+                                //printf("IDs entered\n");
+                                $$ = NULL;
+                                do{
+                                    //printf("idStackHead = %s\n", idStackHead->current_id);
+
+                                    // create table entry from ID and insert it to table on top of stack
+                                    parser_declare_identifier(tableStackHead->table, idStackHead->current_id, IDENTIFIER, $1);
+
+                                    struct id_stack *nextHead = idStackHead->next_id;
+
+                                    free(idStackHead->current_id);
+                                    free(idStackHead);
+
+                                    idStackHead = nextHead;
+                                }
+                                while(idStackHead->next_id != NULL);
+                                }//var_decl should not be on the ast
                 ;
 
 attrib_comm:      TK_IDENTIFICADOR '=' exp	{
@@ -199,6 +291,7 @@ attrib_comm:      TK_IDENTIFICADOR '=' exp	{
                       add_child($2,$3);
                       update_label($2,"=");
                       $$ = $2;
+                      parser_identifier_check(tableStackHead, $1->lex_val->tk_value, IDENTIFIER);
                       }
                 ;
 
@@ -211,43 +304,48 @@ func_call:        TK_IDENTIFICADOR '(' arg_list ')' {
                       strcpy(funcName, "call ");
                       strcat(funcName, $1->lex_val->tk_value);
                       update_label($1,funcName); $$ = $1;
+                      parser_identifier_check(tableStackHead, $1->lex_val->tk_value, FUNCTION);
                       }
 
                 | TK_IDENTIFICADOR '(' ')' {
                       $$ = $1;
+                      parser_identifier_check(tableStackHead, $1->lex_val->tk_value, FUNCTION);
                       }
                 ;
 
-flux_ctrl:        TK_PR_IF '(' exp ')' comm_block TK_PR_ELSE comm_block {
+flux_ctrl:      TK_PR_IF '(' exp ')' new_table comm_block cleanup_table TK_PR_ELSE new_table comm_block cleanup_table{
                   update_label($1,"if");
                   add_child($1,$3);
-                  if($5 != NULL) {
-                    add_child($1,$5);
+                  if($6 != NULL) {
+                    add_child($1,$6);
                     node_stack_pop(&head);
                   }
-                  if($7 != NULL) {
-                    add_child($1,$7);
+                  if($10 != NULL) {
+                    add_child($1,$10);
                     node_stack_pop(&head);
                   }
                   $$ = $1;
-                  }
-                | TK_PR_IF '(' exp ')' comm_block {
+                }
+
+                | TK_PR_IF '(' exp ')' new_table comm_block cleanup_table{
                   update_label($1,"if");
                   add_child($1,$3);
-                  if($5 != NULL) {
-                    add_child($1,$5);
+                  if($6 != NULL) {
+                    add_child($1,$6);
                     node_stack_pop(&head);
                   };
                   $$ = $1;
-                  }
-                | TK_PR_WHILE '(' exp ')' comm_block {
+                }
+
+                | TK_PR_WHILE '(' exp ')' new_table comm_block cleanup_table{
                   update_label($1,"while");
                   add_child($1,$3);
-                  if($5 != NULL) {
-                    add_child($1,$5);
+                  if($6 != NULL) {
+                    add_child($1,$6);
                     node_stack_pop(&head);
                   };
-                  $$ = $1;}
+                  $$ = $1;
+                }
                 ;
 
 // 3.5 Expressions
@@ -391,6 +489,7 @@ un_exp:           '-' un_exp{
                 ;
 
 operand:          TK_IDENTIFICADOR{
+                    parser_identifier_check(tableStackHead, $1->lex_val->tk_value, IDENTIFIER);
                     $$ = $1;
                     }
 
@@ -412,12 +511,24 @@ operand:          TK_IDENTIFICADOR{
 id_list:          TK_IDENTIFICADOR {
                     update_label($1,$1->lex_val->tk_value);
                     $$ = $1;
+
+                    //printf("Entering id to stack %s\n", $1->lex_val->tk_value);
+                    struct id_stack *idStackEntry = malloc(sizeof(struct id_stack));
+                    idStackEntry->current_id = strdup($1->lex_val->tk_value);
+                    idStackEntry->next_id = idStackHead;
+                    idStackHead = idStackEntry;
                     }
 
                 | id_list ';' TK_IDENTIFICADOR {
                     update_label($3,$3->lex_val->tk_value);
                     add_child($1, $3);
                     $$ = $1;
+
+                    //printf("Entering id to stack %s\n", $3->lex_val->tk_value);
+                    struct id_stack *idStackEntry = malloc(sizeof(struct id_stack));
+                    idStackEntry->current_id = strdup($3->lex_val->tk_value);
+                    idStackEntry->next_id = idStackHead;
+                    idStackHead = idStackEntry;
                     }
                 ;
 
@@ -440,17 +551,27 @@ lit:              TK_LIT_INT{
 
 
 type:             TK_PR_INT {
-                    NULL;
+                    $$ = INT;
                     }
 
                 | TK_PR_FLOAT{
-                    NULL;
+                    $$ = FLOAT;
                     }
 
                 | TK_PR_BOOL{
-                    NULL;
+                    $$ = BOOL;
                     }
                 ;
+
+new_table: { // initialize a new table and push it to stack
+                    symbol_table *newTable;
+                    initialize_symbol_table(&newTable);
+                    table_stack_push(&tableStackHead, newTable);
+                }
+
+cleanup_table:  { // pop and free table
+                    free_symbol_table(table_stack_pop(&tableStackHead));
+                }
 %%
 
 void yyerror (char const *mensagem){
