@@ -14,8 +14,11 @@
 #define ERR_VARIABLE 20
 #define ERR_FUNCTION 21
 
+entry_type scanner_data_type;
+
 void parser_declare_identifier(symbol_table *table, char* identifier, entry_nature nature, entry_type data_type);
-void parser_identifier_check(table_stack *table, char* identifier, entry_nature expected_nature);
+symbol_table_entry *parser_identifier_check(table_stack *table, char* identifier, entry_nature expected_nature);
+entry_type type_inference(node_t *op1, node_t *op2);
 
 struct id_stack{
     char *current_id;
@@ -35,6 +38,8 @@ void parser_declare_identifier(symbol_table *table, char* identifier, entry_natu
         exit(ERR_DECLARED);
     }
 
+    scanner_data_type = data_type;
+
     symbol_table_entry newEntry = create_table_entry(identifier, get_line_number(), nature, data_type, NULL);
     insert_symbol_table(table, newEntry);
 
@@ -42,14 +47,15 @@ void parser_declare_identifier(symbol_table *table, char* identifier, entry_natu
     printf("\n");*/
 }
 
-void parser_identifier_check(table_stack *table, char* identifier, entry_nature expected_nature){
+// checks for ERR_UNDECLARED, ERR_VARIABLE or ERR_FUNCTION on a variable, ignores last two errors if expected_nature is -1. Returns the checked entry if it's valid
+symbol_table_entry *parser_identifier_check(table_stack *table, char* identifier, entry_nature expected_nature){
 
     symbol_table_entry *searched_entry = search_table_stack(&table, identifier);
 
     if(searched_entry == NULL){
         printf("Line %d: ERROR (%d): Undeclared identifier %s.\n", get_line_number(), ERR_UNDECLARED, identifier);
         exit(ERR_UNDECLARED);
-    } else {
+    } else if(expected_nature != -1){
         if(expected_nature == FUNCTION && searched_entry->nature == IDENTIFIER){
             printf("Line %d: ERROR (%d): Variable identifier %s used as function.\n", get_line_number(), ERR_VARIABLE, identifier);
             exit(ERR_VARIABLE);
@@ -59,10 +65,32 @@ void parser_identifier_check(table_stack *table, char* identifier, entry_nature 
             exit(ERR_FUNCTION);
         }
     }
+
+    return searched_entry;
 }
 
+// returns an entry type based on the type_inference rules defined in the assignment
+entry_type type_inference(node_t *op1, node_t *op2){
 
-node_s *head = NULL;
+    entry_type t1 = op1->data_type;
+    entry_type t2 = op2->data_type;
+
+    if(t1 == t2){
+        return t1;
+    }
+
+    if((t1 == FLOAT || t2 == FLOAT) && (t1 == INT || t2 == INT)){
+        return FLOAT;
+    }
+
+    if((t1 == BOOL || t2 == BOOL) && (t1 == INT || t2 == INT)){
+        return INT;
+    }
+
+    if((t1 == FLOAT || t2 == FLOAT) && (t1 == BOOL || t2 == BOOL)){
+        return FLOAT;
+    }
+}
 
 symbol_table globalTable = {
     .entry = {
@@ -76,6 +104,8 @@ table_stack symbolTableStack = {
    .prev_table = NULL
 };
 table_stack *tableStackHead = &symbolTableStack;
+
+node_s *head = NULL;
 
 struct id_stack idStack = { .current_id = NULL, .next_id = NULL };
 struct id_stack *idStackHead = &idStack;
@@ -151,34 +181,34 @@ func:             header comm_block cleanup_table{
                     }
                 ;
 
-header:    '(' new_table par_list ')' TK_OC_OR type '/' TK_IDENTIFICADOR {
+header:    '(' new_table par_list ')' TK_OC_OR type {scanner_data_type = $6;} '/' TK_IDENTIFICADOR {
                 //add_child($7,$2);
+                update_label($9,$9->lex_val->tk_value);
+                $$ = $9;
+
+                symbol_table *baseTable = table_stack_base(&tableStackHead);
+                parser_declare_identifier(baseTable, $9->lex_val->tk_value, FUNCTION, $6);
+
+                }
+
+            | '(' new_table ')' TK_OC_OR type {scanner_data_type = $5;} '/' TK_IDENTIFICADOR {
                 update_label($8,$8->lex_val->tk_value);
                 $$ = $8;
 
                 symbol_table *baseTable = table_stack_base(&tableStackHead);
-                parser_declare_identifier(baseTable, $8->lex_val->tk_value, FUNCTION, $6);
-
-                }
-
-            | '(' new_table ')' TK_OC_OR type '/' TK_IDENTIFICADOR {
-                update_label($7,$7->lex_val->tk_value);
-                $$ = $7;
-
-                symbol_table *baseTable = table_stack_base(&tableStackHead);
-                parser_declare_identifier(baseTable, $7->lex_val->tk_value, FUNCTION, $5);
+                parser_declare_identifier(baseTable, $8->lex_val->tk_value, FUNCTION, $5);
                 }
             ;
 
-par_list:   par_list ';' type TK_IDENTIFICADOR {
+par_list:   par_list ';' type {scanner_data_type = $3;} TK_IDENTIFICADOR {
                 //add_child($1,$4);
                 $$ = $1;
-                parser_declare_identifier(tableStackHead->table, $4->lex_val->tk_value, IDENTIFIER, $3);
+                parser_declare_identifier(tableStackHead->table, $5->lex_val->tk_value, IDENTIFIER, $3);
             }
 
-            | type TK_IDENTIFICADOR {
-                $$ = $2;
-                parser_declare_identifier(tableStackHead->table, $2->lex_val->tk_value, IDENTIFIER, $1);
+            | type {scanner_data_type = $1;} TK_IDENTIFICADOR {
+                $$ = $3;
+                parser_declare_identifier(tableStackHead->table, $3->lex_val->tk_value, IDENTIFIER, $1);
             }
             ;
 
@@ -266,7 +296,7 @@ comm:           new_table comm_block cleanup_table{
                     } 
                 ;
 
-var_decl:         type id_list {
+var_decl:         type {scanner_data_type = $1;} id_list {
                                 //printf("IDs entered\n");
                                 $$ = NULL;
                                 do{
@@ -359,6 +389,7 @@ or_exp:           or_exp TK_OC_OR and_exp {
                     add_child($2,$1);
                     add_child($2,$3);
                     update_label($2,"|");
+                    update_type($2, type_inference($1, $3));
                     $$ = $2;
                     }
 
@@ -371,6 +402,7 @@ and_exp:          and_exp TK_OC_AND eq_exp{
                     add_child($2,$1);
                     add_child($2,$3);
                     update_label($2,"&");
+                    update_type($2, type_inference($1, $3));
                     $$ = $2;
                     }
 
@@ -383,6 +415,7 @@ eq_exp:           eq_exp TK_OC_EQ comp_exp{
                     add_child($2,$1);
                     add_child($2,$3);
                     update_label($2,"==");
+                    update_type($2, type_inference($1, $3));
                     $$ = $2;
                     }
 
@@ -390,6 +423,7 @@ eq_exp:           eq_exp TK_OC_EQ comp_exp{
                     add_child($2,$1);
                     add_child($2,$3);
                     update_label($2,"!=");
+                    update_type($2, type_inference($1, $3));
                     $$ = $2;
                     }
 
@@ -400,6 +434,7 @@ comp_exp:         comp_exp '<' sum_exp{
                     add_child($2,$1);
                     add_child($2,$3);
                     update_label($2,"<");
+                    update_type($2, type_inference($1, $3));
                     $$ = $2;
                     }
 
@@ -407,6 +442,7 @@ comp_exp:         comp_exp '<' sum_exp{
                     add_child($2,$1);
                     add_child($2,$3);
                     update_label($2,">");
+                    update_type($2, type_inference($1, $3));
                     $$ = $2;
                     }
 
@@ -414,6 +450,7 @@ comp_exp:         comp_exp '<' sum_exp{
                     add_child($2,$1);
                     add_child($2,$3);
                     update_label($2,"<=");
+                    update_type($2, type_inference($1, $3));
                     $$ = $2;
                     }
 
@@ -421,6 +458,7 @@ comp_exp:         comp_exp '<' sum_exp{
                     add_child($2,$1);
                     add_child($2,$3);
                     update_label($2,">=");
+                    update_type($2, type_inference($1, $3));
                     $$ = $2;
                     }
 
@@ -431,6 +469,7 @@ sum_exp:          sum_exp '+' mult_exp{
                     add_child($2,$1);
                     add_child($2,$3);
                     update_label($2,"+");
+                    update_type($2, type_inference($1, $3));
                     $$ = $2;
                     }
 
@@ -438,6 +477,7 @@ sum_exp:          sum_exp '+' mult_exp{
                     add_child($2,$1);
                     add_child($2,$3);
                     update_label($2,"-");
+                    update_type($2, type_inference($1, $3));
                     $$ = $2;
                     }
 
@@ -450,6 +490,7 @@ mult_exp:         mult_exp '*' un_exp{
                     add_child($2,$1);
                     add_child($2,$3);
                     update_label($2,"*");
+                    update_type($2, type_inference($1, $3));
                     $$ = $2;
                     }
 
@@ -457,6 +498,7 @@ mult_exp:         mult_exp '*' un_exp{
                     add_child($2,$1);
                     add_child($2,$3);
                     update_label($2,"/");
+                    update_type($2, type_inference($1, $3));
                     $$ = $2;
                     }
 
@@ -464,6 +506,7 @@ mult_exp:         mult_exp '*' un_exp{
                     add_child($2,$1);
                     add_child($2,$3);
                     update_label($2,"%");
+                    update_type($2, type_inference($1, $3));
                     $$ = $2;
                     }
 
@@ -489,7 +532,9 @@ un_exp:           '-' un_exp{
                 ;
 
 operand:          TK_IDENTIFICADOR{
-                    parser_identifier_check(tableStackHead, $1->lex_val->tk_value, IDENTIFIER);
+                    // expected_nature is passed as -1, since both functions and identifiers can be used here.
+                    symbol_table_entry *entry = parser_identifier_check(tableStackHead, $1->lex_val->tk_value, -1);
+                    update_type($1, entry->data_type);
                     $$ = $1;
                     }
 

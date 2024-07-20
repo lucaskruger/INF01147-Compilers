@@ -6,9 +6,9 @@ int gv4,
 (int i; int j; int k)|int/foo{
 }
 (int z; bool gv3) | int / bar{
-    int a; d; e,
+    bool a; d; e,
     float b,
     bool c,
 
-    foo = 10;
+    a = gv1 + gv4,
 }

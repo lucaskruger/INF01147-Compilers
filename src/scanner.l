@@ -1,10 +1,14 @@
-/* Lucas Kruger e Nicolas Tesche*/
+/* Lucas Kruger e Nikolas Tesche*/
 
 %{
 #include <stdio.h>
 #include <string.h>
 #include "parser.tab.h"
 #include "../include/ast.h"
+#include "../include/symbol_table.h"
+
+extern entry_type scanner_data_type;
+
 int get_line_number(void);
 %}
 
@@ -52,17 +56,19 @@ return {
   }
 
 
- /*int and flat numbers */  
+ /*int and float numbers */  
 
 {DIGIT}+ {
   yylval.node = create_node(
     create_lex_val(get_line_number(),LIT,strdup(yytext)));
+    update_type(yylval.node, INT);
   return TK_LIT_INT;
   }
 
 {DIGIT}*\.{DIGIT}+ {
   yylval.node = create_node(
     create_lex_val(get_line_number(),LIT,strdup(yytext)));
+    update_type(yylval.node, FLOAT);
   return TK_LIT_FLOAT;
   }
 
@@ -72,12 +78,14 @@ return {
 true	{ 
   yylval.node = create_node(
     create_lex_val(get_line_number(),LIT,strdup(yytext)));
+    update_type(yylval.node, BOOL);
   return TK_LIT_TRUE;
   }
 
 false	{ 
   yylval.node = create_node(
     create_lex_val(get_line_number(),LIT,strdup(yytext)));
+    update_type(yylval.node, BOOL);
   return TK_LIT_FALSE;
   }
 
@@ -106,6 +114,7 @@ false	{
 (_|{LETTER})(_|{LETTER}|{DIGIT})* {
   yylval.node = create_node(
     create_lex_val(get_line_number(),ID,strdup(yytext)));
+    update_type(yylval.node, scanner_data_type);
   return TK_IDENTIFICADOR;
   }
 

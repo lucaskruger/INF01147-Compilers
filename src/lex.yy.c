@@ -513,16 +513,20 @@ int yy_flex_debug = 0;
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
 #line 1 "scanner.l"
-/* Lucas Kruger e Nicolas Tesche*/
+/* Lucas Kruger e Nikolas Tesche*/
 #line 4 "scanner.l"
 #include <stdio.h>
 #include <string.h>
 #include "parser.tab.h"
 #include "../include/ast.h"
-int get_line_number(void);
-#line 524 "lex.yy.c"
+#include "../include/symbol_table.h"
 
-#line 526 "lex.yy.c"
+extern entry_type scanner_data_type;
+
+int get_line_number(void);
+#line 528 "lex.yy.c"
+
+#line 530 "lex.yy.c"
 
 #define INITIAL 0
 #define BLOCK_COMMENT 1
@@ -740,13 +744,13 @@ YY_DECL
 		}
 
 	{
-#line 18 "scanner.l"
+#line 22 "scanner.l"
 
 
-#line 21 "scanner.l"
+#line 25 "scanner.l"
  /*  reserved words */
 
-#line 750 "lex.yy.c"
+#line 754 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -815,28 +819,28 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 23 "scanner.l"
+#line 27 "scanner.l"
 {
   return TK_PR_INT;
   }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 27 "scanner.l"
+#line 31 "scanner.l"
 {
   return TK_PR_FLOAT;
   }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 31 "scanner.l"
+#line 35 "scanner.l"
 {
   return TK_PR_BOOL;
   }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 35 "scanner.l"
+#line 39 "scanner.l"
 {
   yylval.node = create_node(NULL);
   return TK_PR_IF;
@@ -844,7 +848,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 40 "scanner.l"
+#line 44 "scanner.l"
 {
   yylval.node = create_node(NULL);
   return TK_PR_ELSE;
@@ -852,7 +856,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 45 "scanner.l"
+#line 49 "scanner.l"
 {
   yylval.node = create_node(NULL); 
   return TK_PR_WHILE;
@@ -860,85 +864,89 @@ YY_RULE_SETUP
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 50 "scanner.l"
+#line 54 "scanner.l"
 {
   yylval.node = create_node(NULL);
   return TK_PR_RETURN;
   }
 	YY_BREAK
-/*int and flat numbers */  
+/*int and float numbers */  
 case 8:
 YY_RULE_SETUP
-#line 58 "scanner.l"
+#line 62 "scanner.l"
 {
   yylval.node = create_node(
     create_lex_val(get_line_number(),LIT,strdup(yytext)));
+    update_type(yylval.node, INT);
   return TK_LIT_INT;
   }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 64 "scanner.l"
+#line 69 "scanner.l"
 {
   yylval.node = create_node(
     create_lex_val(get_line_number(),LIT,strdup(yytext)));
+    update_type(yylval.node, FLOAT);
   return TK_LIT_FLOAT;
   }
 	YY_BREAK
 /* booleans */
 case 10:
 YY_RULE_SETUP
-#line 73 "scanner.l"
+#line 79 "scanner.l"
 { 
   yylval.node = create_node(
     create_lex_val(get_line_number(),LIT,strdup(yytext)));
+    update_type(yylval.node, BOOL);
   return TK_LIT_TRUE;
   }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 79 "scanner.l"
+#line 86 "scanner.l"
 { 
   yylval.node = create_node(
     create_lex_val(get_line_number(),LIT,strdup(yytext)));
+    update_type(yylval.node, BOOL);
   return TK_LIT_FALSE;
   }
 	YY_BREAK
 /*binary operators */  
 case 12:
 YY_RULE_SETUP
-#line 88 "scanner.l"
+#line 96 "scanner.l"
 { yylval.node = create_node(NULL);return TK_OC_LE;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 89 "scanner.l"
+#line 97 "scanner.l"
 { yylval.node = create_node(NULL);return TK_OC_GE;}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 90 "scanner.l"
+#line 98 "scanner.l"
 { yylval.node = create_node(NULL);return TK_OC_EQ;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 91 "scanner.l"
+#line 99 "scanner.l"
 { yylval.node = create_node(NULL);return TK_OC_NE;}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 92 "scanner.l"
+#line 100 "scanner.l"
 { yylval.node = create_node(NULL);return TK_OC_AND;}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 93 "scanner.l"
+#line 101 "scanner.l"
 { yylval.node = create_node(NULL);return TK_OC_OR;} 
 	YY_BREAK
 /*returns the ascii char as a number */
 case 18:
 YY_RULE_SETUP
-#line 98 "scanner.l"
+#line 106 "scanner.l"
 {
   yylval.node = create_node(NULL);
   return (int)yytext[0];
@@ -946,61 +954,62 @@ YY_RULE_SETUP
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 103 "scanner.l"
+#line 111 "scanner.l"
 {
   return (int)yytext[0];
   }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 107 "scanner.l"
+#line 115 "scanner.l"
 {
   yylval.node = create_node(
     create_lex_val(get_line_number(),ID,strdup(yytext)));
+    update_type(yylval.node, scanner_data_type);
   return TK_IDENTIFICADOR;
   }
 	YY_BREAK
 case 21:
 /* rule 21 can match eol */
 YY_RULE_SETUP
-#line 113 "scanner.l"
+#line 122 "scanner.l"
 
 	YY_BREAK
 /*different rules for entering multiline comment mode */
 case 22:
 YY_RULE_SETUP
-#line 117 "scanner.l"
+#line 126 "scanner.l"
 { BEGIN(BLOCK_COMMENT);}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 118 "scanner.l"
+#line 127 "scanner.l"
 { BEGIN(INITIAL);}
 	YY_BREAK
 case 24:
 /* rule 24 can match eol */
 YY_RULE_SETUP
-#line 119 "scanner.l"
+#line 128 "scanner.l"
 
 	YY_BREAK
 case 25:
 /* rule 25 can match eol */
 YY_RULE_SETUP
-#line 120 "scanner.l"
+#line 129 "scanner.l"
 
 	YY_BREAK
 /*if it's not a id'ed by the rules above it is an error */
 case 26:
 YY_RULE_SETUP
-#line 125 "scanner.l"
+#line 134 "scanner.l"
 { return TK_ERRO;}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 126 "scanner.l"
+#line 135 "scanner.l"
 ECHO;
 	YY_BREAK
-#line 1004 "lex.yy.c"
+#line 1013 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(BLOCK_COMMENT):
 	yyterminate();
@@ -2018,7 +2027,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 126 "scanner.l"
+#line 135 "scanner.l"
 
 
 

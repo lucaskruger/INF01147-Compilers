@@ -5,6 +5,7 @@
 #define AST_H
 
 #include<stdio.h>
+#include"symbol_table.h"
 
 typedef enum token_type { ID, LIT } tk_t;
 
@@ -15,8 +16,9 @@ typedef struct lexical_value {
 } lex_val_t;
 
 typedef struct asl_node_type {
-  lex_val_t *lex_val;
+  lex_val_t *lex_val; 
   char *label;
+  entry_type data_type;
   int number_of_children;
   struct asl_node_type **children;
   struct asl_node_type *parent;
@@ -32,6 +34,7 @@ extern void exporta(void *arvore);
 lex_val_t *create_lex_val(int line, tk_t type, char *value);
 node_t *create_node(const lex_val_t *val);
 void update_label(node_t *node, char *name);
+void update_type(node_t *node, entry_type new_type);
 void add_child(node_t *par, node_t *child);
 void free_node(node_t *node);
 void print_tree(node_t *node);

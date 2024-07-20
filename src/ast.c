@@ -51,6 +51,15 @@ void update_label(node_t *node, char *name) {
   }
 }
 
+void update_type(node_t *node, entry_type new_type) {
+  if (node != NULL) {
+    node->data_type = new_type;
+  } else {
+    // fprintf(stderr, "Error: %s got parameters = %p/ %s", __FUNCTION__,
+    // node,name);
+  }
+}
+
 void add_child(node_t *par, node_t *child) {
   if (par != NULL && child != NULL) {
     par->number_of_children++;
