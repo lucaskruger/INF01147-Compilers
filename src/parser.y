@@ -34,7 +34,7 @@ void yylex_destroy();
 void parser_declare_identifier(symbol_table *table, char* identifier, entry_nature nature, entry_type data_type){
 
     if(search_symbol_table(table, identifier) != NULL){
-        printf("Line %d: ERROR (%d): Variable %s already declared in this scope.\n", get_line_number(), ERR_DECLARED, identifier);
+        fprintf (stderr,"Line %d: ERROR (%d): Variable %s already declared in this scope.\n", get_line_number(), ERR_DECLARED, identifier);
         exit(ERR_DECLARED);
     }
 
@@ -53,15 +53,15 @@ symbol_table_entry *parser_identifier_check(table_stack *table, char* identifier
     symbol_table_entry *searched_entry = search_table_stack(&table, identifier);
 
     if(searched_entry == NULL){
-        printf("Line %d: ERROR (%d): Undeclared identifier %s.\n", get_line_number(), ERR_UNDECLARED, identifier);
+        fprintf (stderr,"Line %d: ERROR (%d): Undeclared identifier %s.\n", get_line_number(), ERR_UNDECLARED, identifier);
         exit(ERR_UNDECLARED);
     } else if(expected_nature != -1){
         if(expected_nature == FUNCTION && searched_entry->nature == IDENTIFIER){
-            printf("Line %d: ERROR (%d): Variable identifier %s used as function.\n", get_line_number(), ERR_VARIABLE, identifier);
+            fprintf (stderr,"Line %d: ERROR (%d): Variable identifier %s used as function.\n", get_line_number(), ERR_VARIABLE, identifier);
             exit(ERR_VARIABLE);
         }
         if(expected_nature == IDENTIFIER && searched_entry->nature == FUNCTION){
-            printf("Line %d: ERROR (%d): Function identifier %s used as variable.\n", get_line_number(), ERR_FUNCTION, identifier);
+            fprintf (stderr,"Line %d: ERROR (%d): Function identifier %s used as variable.\n", get_line_number(), ERR_FUNCTION, identifier);
             exit(ERR_FUNCTION);
         }
     }
@@ -532,8 +532,7 @@ un_exp:           '-' un_exp{
                 ;
 
 operand:          TK_IDENTIFICADOR{
-                    // expected_nature is passed as -1, since both functions and identifiers can be used here.
-                    symbol_table_entry *entry = parser_identifier_check(tableStackHead, $1->lex_val->tk_value, -1);
+                    symbol_table_entry *entry = parser_identifier_check(tableStackHead, $1->lex_val->tk_value, IDENTIFIER);
                     update_type($1, entry->data_type);
                     $$ = $1;
                     }
@@ -578,18 +577,22 @@ id_list:          TK_IDENTIFICADOR {
                 ;
 
 lit:              TK_LIT_INT{
+                    update_type($1, INT);
                     $$ = $1;
                     }
 
                 | TK_LIT_FLOAT{
+                    update_type($1, FLOAT);
                     $$ = $1;
                     }
 
                 | TK_LIT_FALSE{
+                    update_type($1, BOOL);
                     $$ = $1;
                     }
 
                 | TK_LIT_TRUE{
+                    update_type($1, BOOL);
                     $$ = $1;
                     }
                 ;

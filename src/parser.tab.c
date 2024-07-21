@@ -100,7 +100,7 @@ void yylex_destroy();
 void parser_declare_identifier(symbol_table *table, char* identifier, entry_nature nature, entry_type data_type){
 
     if(search_symbol_table(table, identifier) != NULL){
-        printf("Line %d: ERROR (%d): Variable %s already declared in this scope.\n", get_line_number(), ERR_DECLARED, identifier);
+        fprintf (stderr,"Line %d: ERROR (%d): Variable %s already declared in this scope.\n", get_line_number(), ERR_DECLARED, identifier);
         exit(ERR_DECLARED);
     }
 
@@ -119,15 +119,15 @@ symbol_table_entry *parser_identifier_check(table_stack *table, char* identifier
     symbol_table_entry *searched_entry = search_table_stack(&table, identifier);
 
     if(searched_entry == NULL){
-        printf("Line %d: ERROR (%d): Undeclared identifier %s.\n", get_line_number(), ERR_UNDECLARED, identifier);
+        fprintf (stderr,"Line %d: ERROR (%d): Undeclared identifier %s.\n", get_line_number(), ERR_UNDECLARED, identifier);
         exit(ERR_UNDECLARED);
     } else if(expected_nature != -1){
         if(expected_nature == FUNCTION && searched_entry->nature == IDENTIFIER){
-            printf("Line %d: ERROR (%d): Variable identifier %s used as function.\n", get_line_number(), ERR_VARIABLE, identifier);
+            fprintf (stderr,"Line %d: ERROR (%d): Variable identifier %s used as function.\n", get_line_number(), ERR_VARIABLE, identifier);
             exit(ERR_VARIABLE);
         }
         if(expected_nature == IDENTIFIER && searched_entry->nature == FUNCTION){
-            printf("Line %d: ERROR (%d): Function identifier %s used as variable.\n", get_line_number(), ERR_FUNCTION, identifier);
+            fprintf (stderr,"Line %d: ERROR (%d): Function identifier %s used as variable.\n", get_line_number(), ERR_FUNCTION, identifier);
             exit(ERR_FUNCTION);
         }
     }
@@ -669,8 +669,8 @@ static const yytype_int16 yyrline[] =
      319,   328,   340,   346,   360,   370,   383,   388,   396,   401,
      409,   414,   422,   430,   433,   441,   449,   457,   465,   468,
      476,   484,   489,   497,   505,   513,   518,   524,   529,   534,
-     541,   545,   549,   556,   567,   580,   584,   588,   592,   598,
-     602,   606,   611,   617
+     540,   544,   548,   555,   566,   579,   584,   589,   594,   601,
+     605,   609,   614,   620
 };
 #endif
 
@@ -2183,40 +2183,39 @@ yyreduce:
   case 59: /* operand: TK_IDENTIFICADOR  */
 #line 534 "parser.y"
                                   {
-                    // expected_nature is passed as -1, since both functions and identifiers can be used here.
-                    symbol_table_entry *entry = parser_identifier_check(tableStackHead, (yyvsp[0].node)->lex_val->tk_value, -1);
+                    symbol_table_entry *entry = parser_identifier_check(tableStackHead, (yyvsp[0].node)->lex_val->tk_value, IDENTIFIER);
                     update_type((yyvsp[0].node), entry->data_type);
                     (yyval.node) = (yyvsp[0].node);
                     }
-#line 2192 "parser.tab.c"
+#line 2191 "parser.tab.c"
     break;
 
   case 60: /* operand: lit  */
-#line 541 "parser.y"
+#line 540 "parser.y"
                      {
                     (yyval.node) = (yyvsp[0].node);
                     }
-#line 2200 "parser.tab.c"
+#line 2199 "parser.tab.c"
     break;
 
   case 61: /* operand: func_call  */
-#line 545 "parser.y"
+#line 544 "parser.y"
                             {
                     (yyval.node) = (yyvsp[0].node);
                     }
-#line 2208 "parser.tab.c"
+#line 2207 "parser.tab.c"
     break;
 
   case 62: /* operand: '(' exp ')'  */
-#line 549 "parser.y"
+#line 548 "parser.y"
                              {
                     (yyval.node) = (yyvsp[-1].node);
                     }
-#line 2216 "parser.tab.c"
+#line 2215 "parser.tab.c"
     break;
 
   case 63: /* id_list: TK_IDENTIFICADOR  */
-#line 556 "parser.y"
+#line 555 "parser.y"
                                    {
                     update_label((yyvsp[0].node),(yyvsp[0].node)->lex_val->tk_value);
                     (yyval.node) = (yyvsp[0].node);
@@ -2227,11 +2226,11 @@ yyreduce:
                     idStackEntry->next_id = idStackHead;
                     idStackHead = idStackEntry;
                     }
-#line 2231 "parser.tab.c"
+#line 2230 "parser.tab.c"
     break;
 
   case 64: /* id_list: id_list ';' TK_IDENTIFICADOR  */
-#line 567 "parser.y"
+#line 566 "parser.y"
                                                {
                     update_label((yyvsp[0].node),(yyvsp[0].node)->lex_val->tk_value);
                     add_child((yyvsp[-2].node), (yyvsp[0].node));
@@ -2243,12 +2242,13 @@ yyreduce:
                     idStackEntry->next_id = idStackHead;
                     idStackHead = idStackEntry;
                     }
-#line 2247 "parser.tab.c"
+#line 2246 "parser.tab.c"
     break;
 
   case 65: /* lit: TK_LIT_INT  */
-#line 580 "parser.y"
+#line 579 "parser.y"
                             {
+                    update_type((yyvsp[0].node), INT);
                     (yyval.node) = (yyvsp[0].node);
                     }
 #line 2255 "parser.tab.c"
@@ -2257,71 +2257,74 @@ yyreduce:
   case 66: /* lit: TK_LIT_FLOAT  */
 #line 584 "parser.y"
                               {
+                    update_type((yyvsp[0].node), FLOAT);
                     (yyval.node) = (yyvsp[0].node);
                     }
-#line 2263 "parser.tab.c"
+#line 2264 "parser.tab.c"
     break;
 
   case 67: /* lit: TK_LIT_FALSE  */
-#line 588 "parser.y"
+#line 589 "parser.y"
                               {
+                    update_type((yyvsp[0].node), BOOL);
                     (yyval.node) = (yyvsp[0].node);
                     }
-#line 2271 "parser.tab.c"
+#line 2273 "parser.tab.c"
     break;
 
   case 68: /* lit: TK_LIT_TRUE  */
-#line 592 "parser.y"
+#line 594 "parser.y"
                              {
+                    update_type((yyvsp[0].node), BOOL);
                     (yyval.node) = (yyvsp[0].node);
                     }
-#line 2279 "parser.tab.c"
+#line 2282 "parser.tab.c"
     break;
 
   case 69: /* type: TK_PR_INT  */
-#line 598 "parser.y"
+#line 601 "parser.y"
                             {
                     (yyval.filler) = INT;
                     }
-#line 2287 "parser.tab.c"
+#line 2290 "parser.tab.c"
     break;
 
   case 70: /* type: TK_PR_FLOAT  */
-#line 602 "parser.y"
+#line 605 "parser.y"
                              {
                     (yyval.filler) = FLOAT;
                     }
-#line 2295 "parser.tab.c"
+#line 2298 "parser.tab.c"
     break;
 
   case 71: /* type: TK_PR_BOOL  */
-#line 606 "parser.y"
+#line 609 "parser.y"
                             {
                     (yyval.filler) = BOOL;
                     }
-#line 2303 "parser.tab.c"
+#line 2306 "parser.tab.c"
     break;
 
   case 72: /* new_table: %empty  */
-#line 611 "parser.y"
+#line 614 "parser.y"
            { // initialize a new table and push it to stack
                     symbol_table *newTable;
                     initialize_symbol_table(&newTable);
                     table_stack_push(&tableStackHead, newTable);
                 }
-#line 2313 "parser.tab.c"
+#line 2316 "parser.tab.c"
     break;
 
   case 73: /* cleanup_table: %empty  */
-#line 617 "parser.y"
+#line 620 "parser.y"
                 { // pop and free table
                     free_symbol_table(table_stack_pop(&tableStackHead));
                 }
-#line 2321 "parser.tab.c"
+#line 2324 "parser.tab.c"
     break;
 
 
-#line 2325 "parser.tab.c"
+#line 2328 "parser.tab.c"
 
       default: break;
     }
@@ -2545,7 +2548,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 620 "parser.y"
+#line 623 "parser.y"
 
 
 void yyerror (char const *mensagem){

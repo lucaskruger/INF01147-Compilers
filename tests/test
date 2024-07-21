@@ -10,5 +10,5 @@ int gv4,
     float b,
     bool c,
 
-    a = gv1 + gv4,
+    a = b + gv4,
 }
