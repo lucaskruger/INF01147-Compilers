@@ -7,8 +7,13 @@
 // initializes a symbol table
 void initialize_symbol_table(symbol_table **table){
     *table = (symbol_table*)calloc(1, sizeof(symbol_table));
+    if (*table == NULL){
+        //printf("INVALID NULL TABLE\n");
+        return;
+    }
     (*table)->entry.identifier = NULL;
     (*table)->next_entry = NULL;
+    (*table)->next_offset = 0;
 }
 
 // inserts a new entry to the end of the table
@@ -17,6 +22,8 @@ void insert_symbol_table(symbol_table *table, symbol_table_entry new_entry){
         //printf("INVALID NULL TABLE\n");
         return;
     }
+
+    static int offset = 0;
 
     // first table insertion
     if(table->entry.identifier == NULL){
@@ -31,6 +38,13 @@ void insert_symbol_table(symbol_table *table, symbol_table_entry new_entry){
         {
             table->entry.value = strdup("");
         }
+
+        if(new_entry.nature == IDENTIFIER){
+            table->entry.offset = offset;
+            table->next_offset = offset + 4;
+            offset += 4;
+        }
+        
         table->next_entry = NULL;
 
         return;
@@ -56,6 +70,13 @@ void insert_symbol_table(symbol_table *table, symbol_table_entry new_entry){
         {
             current->entry.value = strdup("");
         }
+
+        if(new_entry.nature == IDENTIFIER){
+            table->entry.offset = offset;
+            table->next_offset = offset + 4;
+            offset += 4;
+        }
+
         current->next_entry = NULL;
     }
     

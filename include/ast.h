@@ -18,6 +18,7 @@ typedef struct lexical_value {
 typedef struct asl_node_type {
   lex_val_t *lex_val; 
   char *label;
+  char *temp;
   entry_type data_type;
   int number_of_children;
   struct asl_node_type **children;
@@ -42,5 +43,7 @@ void print_tree(node_t *node);
 node_t *node_stack_pop(node_s **node_stack);
 void node_stack_push(node_s **node_stack, node_t *new_node);
 void node_stack_print(node_s *head);
+char *gen_temp(node_t *node);
+
 
 #endif

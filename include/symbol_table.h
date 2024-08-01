@@ -12,12 +12,14 @@ typedef struct{
     entry_nature nature;
     entry_type data_type;
     char* value;
+    int offset;
 }symbol_table_entry;
 
 // tables are defined as linked lists of symbol_table_entry
 typedef struct symbol_table_struct{
     symbol_table_entry entry;
     struct symbol_table_struct *next_entry;
+    int next_offset;
 } symbol_table;
 
 typedef struct table_stack_element{
