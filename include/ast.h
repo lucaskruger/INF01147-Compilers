@@ -19,6 +19,7 @@ typedef struct asl_node_type {
   lex_val_t *lex_val; 
   char *label;
   char *temp;
+  char *code;
   entry_type data_type;
   int number_of_children;
   struct asl_node_type **children;
