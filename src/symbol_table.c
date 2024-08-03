@@ -23,8 +23,6 @@ void insert_symbol_table(symbol_table *table, symbol_table_entry new_entry){
         return;
     }
 
-    static int offset = 0;
-
     // first table insertion
     if(table->entry.identifier == NULL){
         table->entry.identifier = strdup(new_entry.identifier);
@@ -40,9 +38,11 @@ void insert_symbol_table(symbol_table *table, symbol_table_entry new_entry){
         }
 
         if(new_entry.nature == IDENTIFIER){
-            table->entry.offset = offset;
-            table->next_offset = offset + 4;
-            offset += 4;
+            table->entry.offset = table->next_offset;
+            table->next_offset += 4;
+        }
+        else{
+            table->entry.offset = -1;
         }
         
         table->next_entry = NULL;
@@ -50,7 +50,9 @@ void insert_symbol_table(symbol_table *table, symbol_table_entry new_entry){
         return;
     }
 
+    // not first table insertion
     symbol_table *current = table;
+
     while(current->next_entry != NULL){ // look for the end of the list
         current = current->next_entry;
     }
@@ -72,12 +74,17 @@ void insert_symbol_table(symbol_table *table, symbol_table_entry new_entry){
         }
 
         if(new_entry.nature == IDENTIFIER){
-            table->entry.offset = offset;
-            table->next_offset = offset + 4;
-            offset += 4;
+            current->entry.offset = table->next_offset;
+            table->next_offset += 4;
+        }
+        else{
+            current->entry.offset = -1;
         }
 
         current->next_entry = NULL;
+    }
+    else{
+        printf("Failed to allocate memory for new symbol_table entry\n");
     }
     
 }
@@ -158,7 +165,7 @@ void print_symbol_table(symbol_table *table){
             break;
         }
 
-        printf("%s | %d | %s | %s | %s \n", current->entry.identifier, current->entry.line, natureString, typeString, current->entry.value);
+        printf("%s | %d | %s | %s | %s | %d \n", current->entry.identifier, current->entry.line, natureString, typeString, current->entry.value, current->entry.offset);
 
         current = current->next_entry;
     }
@@ -228,9 +235,10 @@ void table_stack_push(table_stack **stack, symbol_table *new_table){
         return;
     }
 
-    stack_entry->table = new_table;         // enter table contents into entry
-    stack_entry->prev_table = *stack;   // define entry's previous table
-    *stack = stack_entry;               // redefine top of stack as new entry
+    new_table->next_offset = (*stack)->table->next_offset;  // define new table's next offset
+    stack_entry->table = new_table;                         // enter table contents into entry
+    stack_entry->prev_table = *stack;                       // define entry's previous table
+    *stack = stack_entry;                                   // redefine top of stack as new entry
 
     //printf("ENTERED: %d\n", table->value); // ------------------------------------------ REMOVE OR COMMENT LATER -------------------------------------------------
 
@@ -242,13 +250,18 @@ void table_stack_print(table_stack *stack){
     printf("Table Stack Contents:\n");
 
     while(current != NULL){
-        printf("Table Entry:\n");
+        printf("Table Entry");
+
 
         if(current->table != NULL){     // print table at pointer
-            //print_symbol_table(*(current->table));
+            printf(" | next offset: %d\n", current->table->next_offset);
+            printf("\n");
+            print_symbol_table(current->table);
+            printf("\n");
         }
         else{
-            printf("NULL\n");
+            printf("\n");
+            printf("NULL\n===============//================\n");
         }
 
         current = current->prev_table;  // lower pointer by one entry

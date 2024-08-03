@@ -85,7 +85,7 @@ typedef struct comm_list{
 
 char *concat(char *first_string, ...);  // NULL MUST be passed as the last argument
 iloc_comm *gen_comm(iloc_operator op, char* arg1, char *arg2, char *arg3);
-char *gen_comm_str(iloc_comm *comm);
+char *gen_comm_str(iloc_comm *command, char *constant, char *label_t, char *label_f);
 char *gen_label();
 
 

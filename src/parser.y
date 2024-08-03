@@ -96,14 +96,16 @@ symbol_table globalTable = {
     .entry = {
         .identifier = NULL
     },
-    .next_entry = NULL
+    .next_entry = NULL,
+    .next_offset = 0
 };
 
 table_stack symbolTableStack = {
    .table = &globalTable,
-   .prev_table = NULL
+   .prev_table = NULL,
 };
 table_stack *tableStackHead = &symbolTableStack;
+table_stack *tableStackBase = &symbolTableStack;
 
 node_s *head = NULL;
 
