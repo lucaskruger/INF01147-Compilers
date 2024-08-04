@@ -1,14 +1,12 @@
-float gv1,
-float gv2,
-bool gv3,
-int gv4,
+int a,
 
-(int i; int j; int k)|int/foo{
-}
-(int z; bool gv3) | int / bar{
-    bool a; d; e,
-    float b,
-    bool c,
+()|int/foo{
+    int b; c,
 
-    a = b + gv4,
+    a=3,
+    b=4,
+
+    if(a > b){
+        a=5,
+    },
 }

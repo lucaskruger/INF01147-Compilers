@@ -29,7 +29,7 @@ char *concat(char *first_string, ...){
 
     va_start(args, first_string);
 
-    // run strcat for each argument passed, and free pointers to the strings
+    // run strcat for each argument passed
     for(str = first_string; str!=NULL; str = va_arg(args, char*)){
         strcat(final_string, str);
     }
@@ -301,27 +301,27 @@ char *gen_comm_str(iloc_comm *command, char *constant, char *label_t, char *labe
         break;
 
     case CMP_LT:
-        comm_str = concat("cmp_LT\t", arg1, ", ", arg2, " => ", arg3, NULL);
+        comm_str = concat("cmp_LT\t", arg1, ", ", arg2, " -> ", arg3, NULL);
         break;
 
     case CMP_LE:
-        comm_str = concat("cmp_LE\t", arg1, ", ", arg2, " => ", arg3, NULL);
+        comm_str = concat("cmp_LE\t", arg1, ", ", arg2, " -> ", arg3, NULL);
         break;
 
     case CMP_EQ:
-        comm_str = concat("cmp_EQ\t", arg1, ", ", arg2, " => ", arg3, NULL);
+        comm_str = concat("cmp_EQ\t", arg1, ", ", arg2, " -> ", arg3, NULL);
         break;
 
     case CMP_GE:
-        comm_str = concat("cmp_GE\t", arg1, ", ", arg2, " => ", arg3, NULL);
+        comm_str = concat("cmp_GE\t", arg1, ", ", arg2, " -> ", arg3, NULL);
         break;
 
     case CMP_GT:
-        comm_str = concat("cmp_GT\t", arg1, ", ", arg2, " => ", arg3, NULL);
+        comm_str = concat("cmp_GT\t", arg1, ", ", arg2, " -> ", arg3, NULL);
         break;
 
     case CMP_NE:
-        comm_str = concat("cmp_NE\t", arg1, ", ", arg2, " => ", arg3, NULL);
+        comm_str = concat("cmp_NE\t", arg1, ", ", arg2, " -> ", arg3, NULL);
         break;
 
     default:
@@ -355,5 +355,43 @@ char *gen_label(){
     ++label_num;
 
     return label_str;
+}
 
+char *gen_temp(){
+    static int temp_num = 0;
+
+    // get length of the current temp number
+    int num_length = snprintf(NULL, 0, "%d", temp_num);
+
+    // allocate and create temp number string
+    char *temp_num_str = calloc(num_length + 1, sizeof(char));
+    if(temp_num_str == NULL){
+        printf("Memory allocation for temp generation failed");
+        return NULL;
+    }
+
+    sprintf(temp_num_str, "%d", temp_num);
+
+    // create temp
+    char *temp_str = concat("r", temp_num_str, NULL);
+    free(temp_num_str);
+
+    ++temp_num;
+
+    return temp_str;
+}
+
+char *int_to_str(int num){
+
+    int num_length = snprintf(NULL, 0, "%d", num);
+    char *num_str = calloc(num_length + 1, sizeof(char));
+
+    if(num_str == NULL){
+        printf("Memory allocation for int to string failed");
+        return NULL;
+    }
+
+    // convert int to string
+    sprintf(num_str, "%d", num);
+    return num_str;
 }

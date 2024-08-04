@@ -177,32 +177,3 @@ void node_stack_print(node_s *head) {
     current = current->prev_node;
   }
 }
-
-char *gen_temp(node_t *node) {
-  static int temp_num = 0;
-
-  // get length of the current temp number
-  int num_length = snprintf(NULL, 0, "%d", temp_num);
-
-  // allocate and create temp number string
-  char *temp_num_str = calloc(num_length, sizeof(char));
-  if (temp_num_str == NULL) {
-    printf("Memory allocation for temp generation failed");
-    return NULL;
-  }
-
-  sprintf(temp_num_str, "%d", temp_num);
-
-  // create temp
-  char *temp_str = concat("r", node->label, NULL);
-  free(temp_num_str);
-
-  // update temp number if a node is passed
-  if(node){
-    node->temp = strdup(temp_str);
-  }
-
-  ++temp_num;
-
-  return temp_str;
-}

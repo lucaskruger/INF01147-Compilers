@@ -87,6 +87,8 @@ char *concat(char *first_string, ...);  // NULL MUST be passed as the last argum
 iloc_comm *gen_comm(iloc_operator op, char* arg1, char *arg2, char *arg3);
 char *gen_comm_str(iloc_comm *command, char *constant, char *label_t, char *label_f);
 char *gen_label();
+char *gen_temp();
+char *int_to_str(int num);
 
 
 #endif

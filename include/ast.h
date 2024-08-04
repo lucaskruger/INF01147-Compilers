@@ -44,7 +44,6 @@ void print_tree(node_t *node);
 node_t *node_stack_pop(node_s **node_stack);
 void node_stack_push(node_s **node_stack, node_t *new_node);
 void node_stack_print(node_s *head);
-char *gen_temp(node_t *node);
 
 
 #endif
