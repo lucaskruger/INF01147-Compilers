@@ -9,4 +9,6 @@ int a,
     if(a > b){
         a=5,
     },
+
+    return 0,
 }

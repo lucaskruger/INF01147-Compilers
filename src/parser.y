@@ -260,16 +260,17 @@ comm_lst:       comm ',' {
                       }else
                         $$ = $1;
                     }else {
-                    printf("%s", $2->code);
-                      if($1 == NULL){
-                        $$ = $2;
-                        node_stack_push(&head, $2);
-                      }else{
-                        add_child(node_stack_pop(&head), $2);
-                        //add_child($1, $2);
-                        node_stack_push(&head, $2);
+                        if($2->code)
+                            printf("%s", $2->code);
+                        if($1 == NULL){
+                            $$ = $2;
+                            node_stack_push(&head, $2);
+                        }else{
+                            add_child(node_stack_pop(&head), $2);
+                            //add_child($1, $2);
+                            node_stack_push(&head, $2);
                         $$ = $1;
-                      }
+                    }
                     }
                   }
                 ;
