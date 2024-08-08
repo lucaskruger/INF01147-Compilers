@@ -1,4 +1,4 @@
-RELEASE = etapa5
+RELEASE = etapa6
 
 IDIR =../include
 CC=gcc
@@ -12,7 +12,7 @@ LIBS=-lm
 _DEPS = 
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = iloc.o symbol_table.o ast.o parser.tab.o lex.yy.o main.o  
+_OBJ = assembly.o iloc.o symbol_table.o ast.o parser.tab.o lex.yy.o main.o  
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(RELEASE): $(OBJ) 

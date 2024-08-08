@@ -324,6 +324,10 @@ char *gen_comm_str(iloc_comm *command, char *constant, char *label_t, char *labe
         comm_str = concat("cmp_NE\t", arg1, ", ", arg2, " -> ", arg3, NULL);
         break;
 
+    case RETURN:
+        comm_str = concat ("return\t", arg1, NULL);
+        break;
+
     default:
         printf("ILLEGAL OPERATOR\n");
         return NULL;

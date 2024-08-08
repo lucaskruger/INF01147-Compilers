@@ -6,6 +6,7 @@
 #include "../include/ast.h"
 #include "../include/symbol_table.h"
 #include "../include/iloc.h"
+#include "../include/assembly.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -230,7 +231,13 @@ arg_list:         exp{
 ret_comm:         TK_PR_RETURN exp {
                     update_label($1,"return");
                     add_child($1,$2);
+
+                    ++iloc_lines;
                     $$ = $1;
+
+                    iloc_comm *comm = gen_comm(RETURN, $2->temp, NULL, NULL);
+                    update_register_line($2->temp, iloc_lines);
+                    $$->code = concat($2->code, gen_comm_str(comm, NULL, NULL, NULL), "\n", NULL);
                     } 
                 ;
 
@@ -260,8 +267,13 @@ comm_lst:       comm ',' {
                       }else
                         $$ = $1;
                     }else {
-                        if($2->code)
+                        if($2->code){
                             printf("%s", $2->code);
+                        }
+                        else{
+                            --iloc_lines; // corrects for commands that don't appear in iloc
+                        }
+
                         if($1 == NULL){
                             $$ = $2;
                             node_stack_push(&head, $2);
@@ -326,7 +338,10 @@ attrib_comm:      TK_IDENTIFICADOR '=' exp	{
                     add_child($2,$1);
                     add_child($2,$3);
                     update_label($2,"=");
+
+                    ++iloc_lines;
                     $$ = $2;
+
                     symbol_table_entry *entry = parser_identifier_check(tableStackHead, $1->lex_val->tk_value, IDENTIFIER);
 
                     char *scope;
@@ -341,6 +356,7 @@ attrib_comm:      TK_IDENTIFICADOR '=' exp	{
                     }
 
                     iloc_comm *comm = gen_comm(STOREAI, $3->temp, scope, NULL);
+                    update_register_line($3->temp, iloc_lines);
                     $$->code = concat($3->code, gen_comm_str(comm, int_to_str(offset), NULL, NULL), "\n", NULL);
 
                     }
@@ -375,6 +391,9 @@ flux_ctrl:      TK_PR_IF '(' exp ')' new_table comm_block cleanup_table TK_PR_EL
                     add_child($1,$10);
                     node_stack_pop(&head);
                     }
+
+                    printf("=========\n%d <= %d\n=========\n", iloc_lines, iloc_lines + 5);
+                    iloc_lines += 5;
                     $$ = $1;
 
                     char *t_label = gen_label();
@@ -382,6 +401,8 @@ flux_ctrl:      TK_PR_IF '(' exp ')' new_table comm_block cleanup_table TK_PR_EL
                     char *aux_label = gen_label();
 
                     iloc_comm *cbr_comm = gen_comm(CBR, $3->temp, NULL, NULL);
+                    printf("=========\n%s <= %d\n=========\n", $3->temp, iloc_lines);
+                    update_register_line($3->temp, iloc_lines);
                     char *cbr_code = concat($3->code, gen_comm_str(cbr_comm, NULL, t_label, f_label), NULL);
 
                     iloc_comm *jump_aux_comm = gen_comm(JUMPI, NULL, NULL, NULL);
@@ -428,13 +449,15 @@ flux_ctrl:      TK_PR_IF '(' exp ')' new_table comm_block cleanup_table TK_PR_EL
                         add_child($1,$6);
                         node_stack_pop(&head);
                     };
+
+                    iloc_lines += 3;
                     $$ = $1;
 
                     char *t_label = gen_label();
                     char *f_label = gen_label();
 
-
                     iloc_comm *cbr_comm = gen_comm(CBR, $3->temp, NULL, NULL);
+                    update_register_line($3->temp, iloc_lines);
                     char *cbr_code = concat($3->code, gen_comm_str(cbr_comm, NULL, t_label, f_label), NULL);
 
                     char *code_true;
@@ -464,6 +487,8 @@ flux_ctrl:      TK_PR_IF '(' exp ')' new_table comm_block cleanup_table TK_PR_EL
                         add_child($1,$6);
                         node_stack_pop(&head);
                     };
+
+                    iloc_lines += 5;
                     $$ = $1;
 
                     char *t_label = gen_label();
@@ -471,6 +496,7 @@ flux_ctrl:      TK_PR_IF '(' exp ')' new_table comm_block cleanup_table TK_PR_EL
                     char *aux_label = gen_label();
 
                     iloc_comm *cbr_comm = gen_comm(CBR, $3->temp, NULL, NULL);
+                    update_register_line($3->temp, iloc_lines);
                     char *cbr_code = concat($3->code, gen_comm_str(cbr_comm, NULL, t_label, f_label), NULL);
 
                     iloc_comm *jump_aux_comm = gen_comm(JUMPI, NULL, NULL, NULL);
@@ -514,11 +540,16 @@ or_exp:           or_exp TK_OC_OR and_exp {
                     add_child($2,$3);
                     update_label($2,"|");
                     update_type($2, type_inference($1, $3));
+
+                    ++iloc_lines;
                     $$ = $2;
 
                     $$->temp = gen_temp();
+                    add_register_info($$->temp, iloc_lines);
 
                     iloc_comm *comm = gen_comm(OR, $1->temp, $3->temp, $$->temp);
+                    update_register_line($1->temp, iloc_lines);
+                    update_register_line($3->temp, iloc_lines);
                     $$->code = concat($1->code, $3->code, gen_comm_str(comm, NULL, NULL, NULL), "\n", NULL);
 
                     free(comm);
@@ -534,11 +565,16 @@ and_exp:          and_exp TK_OC_AND eq_exp{
                     add_child($2,$3);
                     update_label($2,"&");
                     update_type($2, type_inference($1, $3));
+
+                    ++iloc_lines;
                     $$ = $2;
 
                     $$->temp = gen_temp();
+                    add_register_info($$->temp, iloc_lines);
 
                     iloc_comm *comm = gen_comm(AND, $1->temp, $3->temp, $$->temp);
+                    update_register_line($1->temp, iloc_lines);
+                    update_register_line($3->temp, iloc_lines);
                     $$->code = concat($1->code, $3->code, gen_comm_str(comm, NULL, NULL, NULL), "\n", NULL);
 
                     free(comm);
@@ -554,11 +590,16 @@ eq_exp:           eq_exp TK_OC_EQ comp_exp{
                     add_child($2,$3);
                     update_label($2,"==");
                     update_type($2, type_inference($1, $3));
+
+                    ++iloc_lines;
                     $$ = $2;
 
                     $$->temp = gen_temp();
+                    add_register_info($$->temp, iloc_lines);
 
                     iloc_comm *comm = gen_comm(CMP_EQ, $1->temp, $3->temp, $$->temp);
+                    update_register_line($1->temp, iloc_lines);
+                    update_register_line($3->temp, iloc_lines);
                     $$->code = concat($1->code, $3->code, gen_comm_str(comm, NULL, NULL, NULL), "\n", NULL);
 
                     free(comm);
@@ -569,11 +610,16 @@ eq_exp:           eq_exp TK_OC_EQ comp_exp{
                     add_child($2,$3);
                     update_label($2,"!=");
                     update_type($2, type_inference($1, $3));
+
+                    ++iloc_lines;
                     $$ = $2;
 
                     $$->temp = gen_temp();
+                    add_register_info($$->temp, iloc_lines);
 
                     iloc_comm *comm = gen_comm(CMP_NE, $1->temp, $3->temp, $$->temp);
+                    update_register_line($1->temp, iloc_lines);
+                    update_register_line($3->temp, iloc_lines);
                     $$->code = concat($1->code, $3->code, gen_comm_str(comm, NULL, NULL, NULL), "\n", NULL);
 
                     free(comm);
@@ -587,11 +633,16 @@ comp_exp:         comp_exp '<' sum_exp{
                     add_child($2,$3);
                     update_label($2,"<");
                     update_type($2, type_inference($1, $3));
+
+                    ++iloc_lines;
                     $$ = $2;
 
                     $$->temp = gen_temp();
+                    add_register_info($$->temp, iloc_lines);
 
                     iloc_comm *comm = gen_comm(CMP_LT, $1->temp, $3->temp, $$->temp);
+                    update_register_line($1->temp, iloc_lines);
+                    update_register_line($3->temp, iloc_lines);
                     $$->code = concat($1->code, $3->code, gen_comm_str(comm, NULL, NULL, NULL), "\n", NULL);
 
                     free(comm);
@@ -602,11 +653,16 @@ comp_exp:         comp_exp '<' sum_exp{
                     add_child($2,$3);
                     update_label($2,">");
                     update_type($2, type_inference($1, $3));
+
+                    ++iloc_lines;
                     $$ = $2;
 
                     $$->temp = gen_temp();
+                    add_register_info($$->temp, iloc_lines);
 
                     iloc_comm *comm = gen_comm(CMP_GT, $1->temp, $3->temp, $$->temp);
+                    update_register_line($1->temp, iloc_lines);
+                    update_register_line($3->temp, iloc_lines);
                     $$->code = concat($1->code, $3->code, gen_comm_str(comm, NULL, NULL, NULL), "\n", NULL);
 
                     free(comm);
@@ -617,11 +673,16 @@ comp_exp:         comp_exp '<' sum_exp{
                     add_child($2,$3);
                     update_label($2,"<=");
                     update_type($2, type_inference($1, $3));
+
+                    ++iloc_lines;
                     $$ = $2;
 
                     $$->temp = gen_temp();
+                    add_register_info($$->temp, iloc_lines);
 
                     iloc_comm *comm = gen_comm(CMP_LE, $1->temp, $3->temp, $$->temp);
+                    update_register_line($1->temp, iloc_lines);
+                    update_register_line($3->temp, iloc_lines);
                     $$->code = concat($1->code, $3->code, gen_comm_str(comm, NULL, NULL, NULL), "\n", NULL);
 
                     free(comm);
@@ -632,11 +693,16 @@ comp_exp:         comp_exp '<' sum_exp{
                     add_child($2,$3);
                     update_label($2,">=");
                     update_type($2, type_inference($1, $3));
+
+                    ++iloc_lines;
                     $$ = $2;
 
                     $$->temp = gen_temp();
+                    add_register_info($$->temp, iloc_lines);
 
                     iloc_comm *comm = gen_comm(CMP_GE, $1->temp, $3->temp, $$->temp);
+                    update_register_line($1->temp, iloc_lines);
+                    update_register_line($3->temp, iloc_lines);
                     $$->code = concat($1->code, $3->code, gen_comm_str(comm, NULL, NULL, NULL), "\n", NULL);
 
                     free(comm);
@@ -650,11 +716,16 @@ sum_exp:          sum_exp '+' mult_exp{
                     add_child($2,$3);
                     update_label($2,"+");
                     update_type($2, type_inference($1, $3));
+
+                    ++iloc_lines;
                     $$ = $2;
 
                     $$->temp = gen_temp();
+                    add_register_info($$->temp, iloc_lines);
 
                     iloc_comm *comm = gen_comm(ADD, $1->temp, $3->temp, $$->temp);
+                    update_register_line($1->temp, iloc_lines);
+                    update_register_line($3->temp, iloc_lines);
                     $$->code = concat($1->code, $3->code, gen_comm_str(comm, NULL, NULL, NULL), "\n", NULL);
 
                     free(comm);
@@ -665,11 +736,16 @@ sum_exp:          sum_exp '+' mult_exp{
                     add_child($2,$3);
                     update_label($2,"-");
                     update_type($2, type_inference($1, $3));
+
+                    ++iloc_lines;
                     $$ = $2;
 
                     $$->temp = gen_temp();
+                    add_register_info($$->temp, iloc_lines);
 
                     iloc_comm *comm = gen_comm(SUB, $1->temp, $3->temp, $$->temp);
+                    update_register_line($1->temp, iloc_lines);
+                    update_register_line($3->temp, iloc_lines);
                     $$->code = concat($1->code, $3->code, gen_comm_str(comm, NULL, NULL, NULL), "\n", NULL);
 
                     free(comm);
@@ -685,11 +761,16 @@ mult_exp:         mult_exp '*' un_exp{
                     add_child($2,$3);
                     update_label($2,"*");
                     update_type($2, type_inference($1, $3));
+
+                    ++iloc_lines;
                     $$ = $2;
 
                     $$->temp = gen_temp();
+                    add_register_info($$->temp, iloc_lines);
 
                     iloc_comm *comm = gen_comm(MULT, $1->temp, $3->temp, $$->temp);
+                    update_register_line($1->temp, iloc_lines);
+                    update_register_line($3->temp, iloc_lines);
                     $$->code = concat($1->code, $3->code, gen_comm_str(comm, NULL, NULL, NULL), "\n", NULL);
 
                     free(comm);
@@ -700,11 +781,16 @@ mult_exp:         mult_exp '*' un_exp{
                     add_child($2,$3);
                     update_label($2,"/");
                     update_type($2, type_inference($1, $3));
+
+                    ++iloc_lines;
                     $$ = $2;
 
                     $$->temp = gen_temp();
+                    add_register_info($$->temp, iloc_lines);
 
                     iloc_comm *comm = gen_comm(DIV, $1->temp, $3->temp, $$->temp);
+                    update_register_line($1->temp, iloc_lines);
+                    update_register_line($3->temp, iloc_lines);
                     $$->code = concat($1->code, $3->code, gen_comm_str(comm, NULL, NULL, NULL), "\n", NULL);
 
                     free(comm);
@@ -726,11 +812,15 @@ mult_exp:         mult_exp '*' un_exp{
 un_exp:           '-' un_exp{
                     add_child($1, $2);
                     update_label($1,"-");
+
+                    ++iloc_lines;
                     $$ = $1;
 
                     $$->temp = gen_temp();
+                    add_register_info($$->temp, iloc_lines);
 
                     iloc_comm *comm = gen_comm(MULT, $2->temp, "-1", $$->temp);
+                    update_register_line($2->temp, iloc_lines);
                     $$->code = concat($2->code, gen_comm_str(comm, NULL, NULL, NULL), "\n", NULL);
 
                     free(comm);
@@ -738,11 +828,15 @@ un_exp:           '-' un_exp{
 
                 | '!' un_exp{add_child($1, $2);
                     update_label($1,"!");
+
+                    ++iloc_lines;
                     $$ = $1;
 
                     $$->temp = gen_temp();
+                    add_register_info($$->temp, iloc_lines);
 
                     iloc_comm *comm = gen_comm(CMP_EQ, $2->temp, "0", $$->temp);
+                    update_register_line($2->temp, iloc_lines);
                     $$->code = concat($2->code, gen_comm_str(comm, NULL, NULL, NULL), "\n", NULL);
 
                     free(comm);
@@ -756,7 +850,8 @@ un_exp:           '-' un_exp{
 operand:          TK_IDENTIFICADOR{
                     symbol_table_entry *entry = parser_identifier_check(tableStackHead, $1->lex_val->tk_value, IDENTIFIER);
                     update_type($1, entry->data_type);
-
+                    
+                    ++iloc_lines;
                     $$ = $1;
 
                     char *scope;
@@ -771,6 +866,7 @@ operand:          TK_IDENTIFICADOR{
                     }
 
                     $$->temp = gen_temp();
+                    add_register_info($$->temp, iloc_lines);
 
                     iloc_comm *comm = gen_comm(LOADAI, scope, NULL, $$->temp);
                     
@@ -781,8 +877,11 @@ operand:          TK_IDENTIFICADOR{
                     }
 
                 | lit{
+
+                    ++iloc_lines;
                     $$ = $1;
                     $$->temp = gen_temp();
+                    add_register_info($$->temp, iloc_lines);
 
                     iloc_comm *comm = gen_comm(LOADI, NULL, $$->temp, NULL);
                     $$->code = concat(gen_comm_str(comm, $1->lex_val->tk_value, NULL, NULL), "\n", NULL);

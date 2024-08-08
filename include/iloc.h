@@ -68,7 +68,8 @@ typedef enum operators{
     STORE, STOREAI, STOREAO, CSTORE, CSTOREAI, CSTOREAO,
     I2I, C2C, C2I, I2C,
     JUMPI, JUMP, CBR,
-    CMP_LT, CMP_LE, CMP_EQ, CMP_GE, CMP_GT, CMP_NE
+    CMP_LT, CMP_LE, CMP_EQ, CMP_GE, CMP_GT, CMP_NE,
+    RETURN
 } iloc_operator;
 
 typedef struct{

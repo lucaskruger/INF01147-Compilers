@@ -4,6 +4,7 @@
 #include "../include/ast.h"
 #include "../include/symbol_table.h"
 #include "../include/iloc.h"
+#include "../include/assembly.h"
 
 extern int yyparse(void);
 extern int yylex_destroy(void);
@@ -32,6 +33,8 @@ int main(int argc, char **argv) {
   if (output_file != stdout) {
     fclose(output_file);
   }
+
+  parse_through_iloc_file();
 
   yylex_destroy();
   return ret;
